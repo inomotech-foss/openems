@@ -1,0 +1,20 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "gradle",
+			// "id": "/workspaces/openemsio.openems.edge.application:run.EdgeAppio.openems.edge.application",
+			"script": "io.openems.edge.application:run.EdgeApp",
+			"description": "Run the OpenEMS Edge service",
+			"project": "io.openems.edge.application",
+			"buildFile": "/io.openems.edge.application/build.gradle",
+			"rootProject": "openems",
+			"args": "-Dfelix.cm.dir=$(pwd)/tools/docker/openems-edge/config.d -Dopenems.data.dir=$(pwd)/tools/docker/openems-edge/data",
+			"javaDebug": false,
+			"problemMatcher": [
+				"$gradle"
+			],
+			"label": "Run OpenEMS Edge"
+		}
+	]
+}
