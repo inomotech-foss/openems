@@ -151,7 +151,7 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 				// disappeared
 				this.sendChannelValuesWorker.sendValuesOfAllChannelsOnce();
 		}
-	};
+	}
 
 	/**
 	 * Publish a message to a topic.
