@@ -150,6 +150,7 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 				// Trigger sending of all channel values, because a Component might have
 				// disappeared
 				this.sendChannelValuesWorker.sendValuesOfAllChannelsOnce();
+				break;
 		}
 	}
 
