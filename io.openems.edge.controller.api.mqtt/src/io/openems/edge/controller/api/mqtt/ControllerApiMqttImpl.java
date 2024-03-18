@@ -1,6 +1,7 @@
 package io.openems.edge.controller.api.mqtt;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import org.eclipse.paho.mqttv5.client.IMqttClient;
 import org.eclipse.paho.mqttv5.common.MqttException;
@@ -21,6 +22,9 @@ import org.osgi.service.event.propertytypes.EventTopics;
 import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.types.EdgeConfig;
@@ -59,6 +63,7 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 	protected Config config;
 
 	private String topicPrefix;
+	private String topicEdgeConfig;
 	private IMqttClient mqttClient = null;
 
 	public ControllerApiMqttImpl() {
@@ -121,21 +126,32 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 			return;
 		}
 		switch (event.getTopic()) {
-		case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE:
-			this.sendChannelValuesWorker.collectData();
-			break;
+			case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE:
+				this.sendChannelValuesWorker.collectData();
+				break;
 
-		case EdgeEventConstants.TOPIC_CONFIG_UPDATE:
-			// Send new EdgeConfig
-			var config = (EdgeConfig) event.getProperty(EdgeEventConstants.TOPIC_CONFIG_UPDATE_KEY);
-			this.publish(ControllerApiMqtt.TOPIC_EDGE_CONFIG, config.toJson().toString(), //
-					1 /* QOS */, true /* retain */, new MqttProperties() /* no specific properties */);
-
-			// Trigger sending of all channel values, because a Component might have
-			// disappeared
-			this.sendChannelValuesWorker.sendValuesOfAllChannelsOnce();
+			case EdgeEventConstants.TOPIC_CONFIG_UPDATE:
+				// Send new EdgeConfig
+				var config = (EdgeConfig) event.getProperty(EdgeEventConstants.TOPIC_CONFIG_UPDATE_KEY);
+				for (Map.Entry<String, JsonElement> entry : config.toJson().entrySet()) {
+					String key = entry.getKey();
+					JsonElement value = entry.getValue();
+					if (value.isJsonObject()) {
+						JsonObject subObject = value.getAsJsonObject();
+						for (Map.Entry<String, JsonElement> subEntry : subObject.entrySet()) {
+							String subKey = subEntry.getKey();
+							JsonElement subValue = subEntry.getValue();
+							this.topicEdgeConfig = String.format(ControllerApiMqtt.TOPIC_EDGE_CONFIG, key, subKey);
+							this.publish(topicEdgeConfig, subValue.toString(), //
+									1 /* QOS */, true /* retain */, new MqttProperties() /* no specific properties */);
+						}
+					}
+				}
+				// Trigger sending of all channel values, because a Component might have
+				// disappeared
+				this.sendChannelValuesWorker.sendValuesOfAllChannelsOnce();
 		}
-	}
+	};
 
 	/**
 	 * Publish a message to a topic.
