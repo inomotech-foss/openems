@@ -49,6 +49,62 @@ public interface MeasuringEvcs extends Evcs {
 				.text("Instantaneous current flow to EV")),
 
 		/**
+		 * Current to ev (import) on L1.
+		 *
+		 * <p>
+		 * Instantaneous current flow to EV on L1
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: Integer
+		 * <li>Unit: mA
+		 * </ul>
+		 */
+		CURRENT_TO_EV_L1(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Instantaneous current flow to EV on L1")),
+
+		/**
+		 * Current to ev (import) on L2.
+		 *
+		 * <p>
+		 * Instantaneous current flow to EV on L2
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: Integer
+		 * <li>Unit: mA
+		 * </ul>
+		 */
+		CURRENT_TO_EV_L2(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Instantaneous current flow to EV on L2")),
+
+		/**
+		 * Current to ev (import) on L3.
+		 *
+		 * <p>
+		 * Instantaneous current flow to EV on L3
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: Integer
+		 * <li>Unit: mA
+		 * </ul>
+		 */
+		CURRENT_TO_EV_L3(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.MILLIAMPERE) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Instantaneous current flow to EV on L3")),
+		/**
 		 * Current offered.
 		 *
 		 * <p>
@@ -108,6 +164,69 @@ public interface MeasuringEvcs extends Evcs {
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Active energy to ev")),
+
+		/**
+		 * Active energy to ev (import) on L1.
+		 *
+		 * <p>
+		 * Numerical value read from the "active electrical energy" (Wh) register of the
+		 * (most authoritative) electrical meter measuring the total energy imported on
+		 * L1 (from the grid supply).
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: DOUBLE
+		 * <li>Unit: Wh
+		 * </ul>
+		 */
+		ENERGY_ACTIVE_TO_EV_L1(Doc.of(OpenemsType.DOUBLE) //
+				.unit(Unit.CUMULATED_WATT_HOURS) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Active energy to ev on L1")),
+
+		/**
+		 * Active energy to ev (import) on L2.
+		 *
+		 * <p>
+		 * Numerical value read from the "active electrical energy" (Wh) register of the
+		 * (most authoritative) electrical meter measuring the total energy imported on
+		 * L2 (from the grid supply).
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: DOUBLE
+		 * <li>Unit: Wh
+		 * </ul>
+		 */
+		ENERGY_ACTIVE_TO_EV_L2(Doc.of(OpenemsType.DOUBLE) //
+				.unit(Unit.CUMULATED_WATT_HOURS) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Active energy to ev on L2")),
+
+		/**
+		 * Active energy to ev (import) on L3.
+		 *
+		 * <p>
+		 * Numerical value read from the "active electrical energy" (Wh) register of the
+		 * (most authoritative) electrical meter measuring the total energy imported on
+		 * L3 (from the grid supply).
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: DOUBLE
+		 * <li>Unit: Wh
+		 * </ul>
+		 */
+		ENERGY_ACTIVE_TO_EV_L3(Doc.of(OpenemsType.DOUBLE) //
+				.unit(Unit.CUMULATED_WATT_HOURS) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Active energy to ev on L3")),
 
 		/**
 		 * Reactive energy to grid (export).
@@ -387,6 +506,108 @@ public interface MeasuringEvcs extends Evcs {
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Voltage")),
+
+		/**
+		 * Voltage L1 to N.
+		 *
+		 * <p>
+		 * Instantaneous AC RMS L1 to N supply voltage.
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: String
+		 * </ul>
+		 */
+		VOLTAGE_L1_N(Doc.of(OpenemsType.STRING)//
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Voltage.L1-N")),
+
+		/**
+		 * Voltage L2 to N.
+		 *
+		 * <p>
+		 * Instantaneous AC RMS L2 to N supply voltage.
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: String
+		 * </ul>
+		 */
+		VOLTAGE_L2_N(Doc.of(OpenemsType.STRING)//
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Voltage.L2-N")),
+
+		/**
+		 * Voltage L3 to N.
+		 *
+		 * <p>
+		 * Instantaneous AC RMS L3 to N supply voltage.
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: String
+		 * </ul>
+		 */
+		VOLTAGE_L3_N(Doc.of(OpenemsType.STRING)//
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Voltage.L3-N")),
+
+		/**
+		 * Voltage L1 to L2.
+		 *
+		 * <p>
+		 * Instantaneous AC RMS L1 to L2 supply voltage.
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: String
+		 * </ul>
+		 */
+		VOLTAGE_L1_L2(Doc.of(OpenemsType.STRING)//
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Voltage.L1-L2")),
+
+		/**
+		 * Voltage L2 to L3.
+		 *
+		 * <p>
+		 * Instantaneous AC RMS L2 to L3 supply voltage.
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: String
+		 * </ul>
+		 */
+		VOLTAGE_L2_L3(Doc.of(OpenemsType.STRING)//
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Voltage.L2-L3")),
+
+		/**
+		 * Voltage L3 to L1.
+		 *
+		 * <p>
+		 * Instantaneous AC RMS L3 to L1 supply voltage.
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: String
+		 * </ul>
+		 */
+		VOLTAGE_L3_L1(Doc.of(OpenemsType.STRING)//
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Voltage.L3-L1")),
 
 		/**
 		 * Temperature.
