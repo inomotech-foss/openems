@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import io.openems.edge.common.test.ComponentTest;
 import io.openems.edge.common.test.DummyComponentManager;
-import io.openems.edge.evcs.ocpp.alfen.EvcsOcppAlfenEveSingleImpl;
 import io.openems.edge.evcs.test.DummyEvcsPower;
 
 public class EvcsOcppAlfenEveSingleImplTest {

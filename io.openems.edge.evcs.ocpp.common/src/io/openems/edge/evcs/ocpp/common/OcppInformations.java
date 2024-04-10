@@ -149,7 +149,8 @@ public enum OcppInformations {
 	/**
 	 * Instantaneous active power on L1 imported by EV. (W)
 	 */
-	CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L1("Power.Active.Import.L1", Evcs.ChannelId.CHARGE_POWER_L1),
+	CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L1("Power.Active.Import.L1",
+			Evcs.ChannelId.CHARGE_POWER_L1),
 
 	/**
 	 * Instantaneous active power on L2 imported by EV. (W)
@@ -202,12 +203,34 @@ public enum OcppInformations {
 	 */
 	CORE_METER_VALUES_VOLTAGE("Voltage", MeasuringEvcs.ChannelId.VOLTAGE),
 
+	/**
+	 * Instantaneous AC RMS supply voltage L1-N.
+	 */
 	CORE_METER_VALUES_VOLTAGE_L1_N("Voltage.L1-N", MeasuringEvcs.ChannelId.VOLTAGE_L1_N),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L2-N.
+	 */
 	CORE_METER_VALUES_VOLTAGE_L2_N("Voltage.L2-N", MeasuringEvcs.ChannelId.VOLTAGE_L2_N),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L3-N.
+	 */
 	CORE_METER_VALUES_VOLTAGE_L3_N("Voltage.L3-N", MeasuringEvcs.ChannelId.VOLTAGE_L3_N),
 
+	/**
+	 * Instantaneous AC RMS supply voltage L1-L2.
+	 */
 	CORE_METER_VALUES_VOLTAGE_L1_L2("Voltage.L1-L2", MeasuringEvcs.ChannelId.VOLTAGE_L1_L2),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L2-L3.
+	 */
 	CORE_METER_VALUES_VOLTAGE_L2_L3("Voltage.L2-L3", MeasuringEvcs.ChannelId.VOLTAGE_L2_L3),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L3-L1.
+	 */
 	CORE_METER_VALUES_VOLTAGE_L3_L1("Voltage.L3-L1", MeasuringEvcs.ChannelId.VOLTAGE_L3_L1);
 
 	private final String ocppValue;

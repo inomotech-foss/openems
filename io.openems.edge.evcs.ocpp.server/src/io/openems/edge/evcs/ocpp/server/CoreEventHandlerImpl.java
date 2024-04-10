@@ -252,7 +252,7 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 						case CORE_METER_VALUES_VOLTAGE_L2_L3:
 						case CORE_METER_VALUES_VOLTAGE_L3_L1:
 						case CORE_METER_VALUES_SOC:
-							correctValue = (int) Math.round(Double.parseDouble(val));
+							correctValue = Float.parseFloat(val);// (int) Math.round(Double.parseDouble(val));
 							break;
 
 						case CORE_METER_VALUES_RPM:

@@ -23,8 +23,6 @@ import org.osgi.service.metatype.annotations.Designate;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
 import eu.chargetime.ocpp.model.core.DataTransferRequest;
-import eu.chargetime.ocpp.model.remotetrigger.TriggerMessageRequest;
-import eu.chargetime.ocpp.model.remotetrigger.TriggerMessageRequestType;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
@@ -92,9 +90,6 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 	private void activate(ComponentContext context, Config config) {
 		this.config = config;
 		super.activate(context, config.id(), config.alias(), config.enabled());
-
-//		this._setChargingType(ChargingType.AC);
-//		this._setPowerPrecision(230);
 	}
 
 	@Deactivate
@@ -159,16 +154,19 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 		requests.add(setMeterValueSampleInterval);
 
 		var setMeterValueSampledData = new ChangeConfigurationRequest("MeterValuesSampledData",
-				"Current.Import,Voltage,Power.Active.Import");
+				"Current.Import,Voltage,Power.Active.Import,Current.Offered");
 		requests.add(setMeterValueSampledData);
 
 		var setClockAlignedDataInterval = new ChangeConfigurationRequest("ClockAlignedDataInterval", "10");
 		requests.add(setClockAlignedDataInterval);
-		
+
 		var setMeterValuesAlignedData = new ChangeConfigurationRequest("MeterValuesAlignedData",
 				"Energy.Active.Import.Register.L1,Energy.Active.Import.Register.L2,Energy.Active.Import.Register.L3,"
 						+ "Current.Import.L1,Energy.Reactive.Import.Register.L2,Energy.Reactive.Import.Register.L3,Voltage.L1-N,Voltage.L2-N,Voltage.L3-N");
 		requests.add(setMeterValuesAlignedData);
+
+		var setSendStationStatus = new ChangeConfigurationRequest("SendStationStatus", "True");
+		requests.add(setSendStationStatus);
 
 		return requests;
 	}
@@ -176,23 +174,6 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 	@Override
 	public List<Request> getRequiredRequestsDuringConnection() {
 		List<Request> requests = new ArrayList<>();
-
-		var requestMeterValues = new TriggerMessageRequest(TriggerMessageRequestType.MeterValues);
-		requestMeterValues.setConnectorId(this.getConfiguredConnectorId());
-		requests.add(requestMeterValues);
-
-		var requestStatus = new TriggerMessageRequest(TriggerMessageRequestType.StatusNotification);
-		requestStatus.setConnectorId(this.getConfiguredConnectorId());
-		requests.add(requestStatus);
-
-		var setMeterValueSampledData = new ChangeConfigurationRequest("MeterValuesSampledData",
-				"Current.Import,Voltage,Power.Active.Import");
-		requests.add(setMeterValueSampledData);
-
-		var setMeterValuesAlignedData = new ChangeConfigurationRequest("MeterValuesAlignedData",
-				"Energy.Active.Import.Register.L1,Energy.Active.Import.Register.L2,Energy.Active.Import.Register.L3,"
-						+ "Current.Import.L1,Energy.Reactive.Import.Register.L2,Energy.Reactive.Import.Register.L3,Voltage.L1-N,Voltage.L2-N,Voltage.L3-N");
-		requests.add(setMeterValuesAlignedData);
 
 		return requests;
 	}
