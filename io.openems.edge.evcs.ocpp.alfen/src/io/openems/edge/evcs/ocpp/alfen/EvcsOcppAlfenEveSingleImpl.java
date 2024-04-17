@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -23,9 +24,16 @@ import org.osgi.service.metatype.annotations.Designate;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
 import eu.chargetime.ocpp.model.core.DataTransferRequest;
+import io.openems.common.exceptions.OpenemsError;
+import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
+import io.openems.common.exceptions.OpenemsException;
+import io.openems.common.jsonrpc.base.JsonrpcRequest;
+import io.openems.common.jsonrpc.base.JsonrpcResponseSuccess;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
+import io.openems.edge.common.jsonapi.JsonApi;
+import io.openems.edge.common.user.User;
 import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.api.EvcsPower;
 import io.openems.edge.evcs.api.ManagedEvcs;
@@ -47,7 +55,7 @@ import io.openems.edge.timedata.api.Timedata;
 		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE //
 })
 public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
-		implements EvcsOcppAlfenEveSingle, Evcs, MeasuringEvcs, ManagedEvcs, OpenemsComponent, EventHandler {
+		implements EvcsOcppAlfenEveSingle, Evcs, MeasuringEvcs, ManagedEvcs, OpenemsComponent, EventHandler, JsonApi {
 
 	// Default value for the hardware limit
 	private static final Integer DEFAULT_HARDWARE_LIMIT = 22080;
@@ -213,5 +221,28 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 	@Override
 	public Timedata getTimedata() {
 		return this.timedata;
+	}
+
+	@Override
+	public CompletableFuture<? extends JsonrpcResponseSuccess> handleJsonrpcRequest(User user, JsonrpcRequest request)
+			throws OpenemsNamedException {
+
+		switch (request.getMethod()) {
+		case ApplyChargePowerLimitRequest.METHOD:
+			return this.handleApplyChargePowerLimitRequest(user, ApplyChargePowerLimitRequest.from(request));
+		default:
+			throw new OpenemsNamedException(OpenemsError.JSONRPC_UNHANDLED_METHOD, request.getMethod());
+		}
+	}
+
+	private CompletableFuture<JsonrpcResponseSuccess> handleApplyChargePowerLimitRequest(User user,
+			ApplyChargePowerLimitRequest request) throws OpenemsException {
+		var chargePowerLimit = request.getChargePowerLimit();
+
+		boolean success = this.applyChargePowerLimit(chargePowerLimit);
+
+		var response = new ApplyChargePowerLimitResponse(request.getId(), success);
+
+		return CompletableFuture.completedFuture(response);
 	}
 }

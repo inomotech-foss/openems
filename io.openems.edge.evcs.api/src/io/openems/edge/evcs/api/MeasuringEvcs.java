@@ -503,6 +503,7 @@ public interface MeasuringEvcs extends Evcs {
 		 * </ul>
 		 */
 		VOLTAGE(Doc.of(OpenemsType.FLOAT) //
+				.unit(Unit.VOLT) //
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Voltage")),
@@ -520,6 +521,7 @@ public interface MeasuringEvcs extends Evcs {
 		 * </ul>
 		 */
 		VOLTAGE_L1_N(Doc.of(OpenemsType.FLOAT)//
+				.unit(Unit.VOLT) //
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Voltage.L1-N")),
@@ -537,6 +539,7 @@ public interface MeasuringEvcs extends Evcs {
 		 * </ul>
 		 */
 		VOLTAGE_L2_N(Doc.of(OpenemsType.FLOAT)//
+				.unit(Unit.VOLT) //
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Voltage.L2-N")),
@@ -554,6 +557,7 @@ public interface MeasuringEvcs extends Evcs {
 		 * </ul>
 		 */
 		VOLTAGE_L3_N(Doc.of(OpenemsType.FLOAT)//
+				.unit(Unit.VOLT) //
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Voltage.L3-N")),
@@ -571,6 +575,7 @@ public interface MeasuringEvcs extends Evcs {
 		 * </ul>
 		 */
 		VOLTAGE_L1_L2(Doc.of(OpenemsType.FLOAT)//
+				.unit(Unit.VOLT) //
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Voltage.L1-L2")),
@@ -588,6 +593,7 @@ public interface MeasuringEvcs extends Evcs {
 		 * </ul>
 		 */
 		VOLTAGE_L2_L3(Doc.of(OpenemsType.FLOAT)//
+				.unit(Unit.VOLT) //
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Voltage.L2-L3")),
@@ -605,6 +611,7 @@ public interface MeasuringEvcs extends Evcs {
 		 * </ul>
 		 */
 		VOLTAGE_L3_L1(Doc.of(OpenemsType.FLOAT)//
+				.unit(Unit.VOLT) //
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Voltage.L3-L1")),
