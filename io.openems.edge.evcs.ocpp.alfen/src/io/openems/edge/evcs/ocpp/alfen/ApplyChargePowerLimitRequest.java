@@ -53,7 +53,7 @@ public class ApplyChargePowerLimitRequest extends JsonrpcRequest {
 		this.connectorId = connectorId;
 		this.chargePowerLimit = chargePowerLimit;
 	}
-	
+
 	public int getChargePowerLimit() {
 		return this.chargePowerLimit;
 	}
@@ -61,7 +61,7 @@ public class ApplyChargePowerLimitRequest extends JsonrpcRequest {
 	public int getConnectorId() {
 		return this.connectorId;
 	}
-	
+
 	@Override
 	public JsonObject getParams() {
 		return JsonUtils.buildJsonObject() //
