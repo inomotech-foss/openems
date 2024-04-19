@@ -94,6 +94,30 @@ public enum OcppInformations {
 			MeasuringEvcs.ChannelId.ENERGY_REACTIVE_TO_EV),
 
 	/**
+	 * Numerical value read from the "reactive electrical energy" (VARh) register of
+	 * the (most authoritative) electrical meter measuring energy imported (from the
+	 * grid supply).
+	 */
+	CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER_L1("Energy.Reactive.Import.Register.L1",
+			MeasuringEvcs.ChannelId.ENERGY_REACTIVE_TO_EV_L1),
+
+	/**
+	 * Numerical value read from the "reactive electrical energy" (VARh) register of
+	 * the (most authoritative) electrical meter measuring energy imported (from the
+	 * grid supply).
+	 */
+	CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER_L2("Energy.Reactive.Import.Register.L2",
+			MeasuringEvcs.ChannelId.ENERGY_REACTIVE_TO_EV_L2),
+
+	/**
+	 * Numerical value read from the "reactive electrical energy" (VARh) register of
+	 * the (most authoritative) electrical meter measuring energy imported (from the
+	 * grid supply).
+	 */
+	CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER_L3("Energy.Reactive.Import.Register.L3",
+			MeasuringEvcs.ChannelId.ENERGY_REACTIVE_TO_EV_L3),
+
+	/**
 	 * Absolute amount of "active electrical energy" (Wh) exported (to the grid)
 	 * during an associated time "interval", specified by a Metervalues
 	 * ReadingContext, and applicable interval duration configuration values (in
@@ -149,8 +173,7 @@ public enum OcppInformations {
 	/**
 	 * Instantaneous active power on L1 imported by EV. (W)
 	 */
-	CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L1("Power.Active.Import.L1",
-			Evcs.ChannelId.CHARGE_POWER_L1),
+	CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L1("Power.Active.Import.L1", Evcs.ChannelId.CHARGE_POWER_L1),
 
 	/**
 	 * Instantaneous active power on L2 imported by EV. (W)

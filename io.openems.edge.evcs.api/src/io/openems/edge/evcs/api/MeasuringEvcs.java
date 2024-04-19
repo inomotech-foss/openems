@@ -271,6 +271,69 @@ public interface MeasuringEvcs extends Evcs {
 				.text("Energy.Reactive.Import.Register")),
 
 		/**
+		 * Reactive energy to EV (import).
+		 *
+		 * <p>
+		 * Numerical value read from the "reactive electrical energy" (VARh or kVARh)
+		 * register of the (most authoritative) electrical meter measuring energy
+		 * imported (from the grid supply).
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: DOUBLE
+		 * <li>Unit: VARh
+		 * </ul>
+		 */
+		ENERGY_REACTIVE_TO_EV_L1(Doc.of(OpenemsType.DOUBLE) //
+				.unit(Unit.VOLT_AMPERE_REACTIVE_HOURS) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Energy.Reactive.Import.Register.L1")),
+
+		/**
+		 * Reactive energy to EV (import).
+		 *
+		 * <p>
+		 * Numerical value read from the "reactive electrical energy" (VARh or kVARh)
+		 * register of the (most authoritative) electrical meter measuring energy
+		 * imported (from the grid supply).
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: DOUBLE
+		 * <li>Unit: VARh
+		 * </ul>
+		 */
+		ENERGY_REACTIVE_TO_EV_L2(Doc.of(OpenemsType.DOUBLE) //
+				.unit(Unit.VOLT_AMPERE_REACTIVE_HOURS) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Energy.Reactive.Import.Register.L2")),
+
+		/**
+		 * Reactive energy to EV (import).
+		 *
+		 * <p>
+		 * Numerical value read from the "reactive electrical energy" (VARh or kVARh)
+		 * register of the (most authoritative) electrical meter measuring energy
+		 * imported (from the grid supply).
+		 *
+		 * <ul>
+		 * <li>Interface: MeasuringEvcs
+		 * <li>Readable
+		 * <li>Type: DOUBLE
+		 * <li>Unit: VARh
+		 * </ul>
+		 */
+		ENERGY_REACTIVE_TO_EV_L3(Doc.of(OpenemsType.DOUBLE) //
+				.unit(Unit.VOLT_AMPERE_REACTIVE_HOURS) //
+				.accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH) //
+				.text("Energy.Reactive.Import.Register.L3")),
+
+		/**
 		 * Active energy to grid (export) in an interval.
 		 *
 		 * <p>
