@@ -15,8 +15,8 @@ import io.openems.common.utils.JsonUtils;
  *   "id": "UUID",
  *   "method": "applyChargePowerLimit",
  *   "params": {
- *   	"connector": <connectorId>,
-        "value": <power_W>
+ *   	"connector": connectorId,
+        "value": power_W
  *   }
  * }
  * </pre>
