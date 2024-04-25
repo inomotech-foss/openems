@@ -4,8 +4,9 @@ on:
     types: [opened, synchronize, reopened]
   push:
     branches:
-      - main
       - develop
+      - inomo-develop
+      - IOT-253-Docker
   
 jobs:
   build-java:
