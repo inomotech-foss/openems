@@ -5,9 +5,7 @@ on:
     branches:
       - inomo-develop
       - IOT-253-Docker
-    tags:
-      - "*.*.*"
-    
+          
 jobs:
   docker:
     runs-on: ubuntu-latest
