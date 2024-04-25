@@ -21,7 +21,7 @@ RUN wget -O /etc/apk/keys/adoptium.rsa.pub https://packages.adoptium.net/artifac
 RUN apk update && apk upgrade
 
 RUN apk add --no-cache \
-    temurin-${JAVA_VERSION}-jre
+    openjdk${JAVA_VERSION}-jre
 
 ### Build edge container
 FROM base_container
