@@ -66,8 +66,8 @@ jobs:
             org.opencontainers.image.vendor=OpenEMS <openems.io>
           tags: |
             type=semver,pattern={{version}}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
-            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/inomo-develop' }}
+            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/IOT-253-Docker' }}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
