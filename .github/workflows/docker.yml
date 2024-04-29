@@ -3,7 +3,6 @@ name: Build OpenEMS Docker Image
 on: # test
   push:
     branches:
-      - develop
       - inomo-develop
       - IOT-253-Docker
     tags:
