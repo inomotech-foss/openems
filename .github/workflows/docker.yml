@@ -1,6 +1,6 @@
 name: Build OpenEMS Docker Image
 
-on: # test
+on: 
   push:
     branches:
       - inomo-develop
