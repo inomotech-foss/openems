@@ -1,9 +1,10 @@
 name: Comment Pull_Request
 on:
-  workflow_run:
-    workflows: [Build OpenEMS]
-    types:
-      - completed
+  workflow_dispatch:
+#  workflow_run:
+#    workflows: [Build OpenEMS]
+#    types:
+#      - completed
 
 jobs:
   comment_jacoco:
