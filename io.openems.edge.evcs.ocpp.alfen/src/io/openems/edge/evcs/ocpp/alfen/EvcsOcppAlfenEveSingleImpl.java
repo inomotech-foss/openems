@@ -162,15 +162,14 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 		requests.add(setMeterValueSampleInterval);
 
 		var setMeterValueSampledData = new ChangeConfigurationRequest("MeterValuesSampledData",
-				"Current.Import,Voltage,Power.Active.Import,Current.Offered");
+				"Current.Import,Voltage,Power.Active.Import,Current.Offered,Energy.Active.Import.Register");
 		requests.add(setMeterValueSampledData);
 
 		var setClockAlignedDataInterval = new ChangeConfigurationRequest("ClockAlignedDataInterval", "10");
 		requests.add(setClockAlignedDataInterval);
 
 		var setMeterValuesAlignedData = new ChangeConfigurationRequest("MeterValuesAlignedData",
-				"Energy.Active.Import.Register.L1,Energy.Active.Import.Register.L2,Energy.Active.Import.Register.L3,"
-						+ "Current.Import.L1,Energy.Reactive.Import.Register.L2,Energy.Reactive.Import.Register.L3,Voltage.L1-N,Voltage.L2-N,Voltage.L3-N");
+				"Energy.Active.Import.Register,Current.Import,Power.Active.Import,Voltage,Current.Offered");
 		requests.add(setMeterValuesAlignedData);
 
 		var setSendStationStatus = new ChangeConfigurationRequest("SendStationStatus", "True");
