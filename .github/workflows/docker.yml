@@ -60,7 +60,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/openems/${{ matrix.image }}
+            ghcr.io/${{ github.repository }}/${{ matrix.image }}
           labels: |
             org.opencontainers.image.authors=OpenEMS
             org.opencontainers.image.title=OpenEMS ${{ matrix.image }}
