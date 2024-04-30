@@ -12,6 +12,8 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 		private PersistencePriority persistencePriority;
 		private boolean debugMode;
 		private String clientId;
+		private String optTopicPrefix;
+		private boolean retainMessages;
 		private String username;
 		private String password;
 		private String certPem;
@@ -33,6 +35,11 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 
 		public Builder setClientId(String clientId) {
 			this.clientId = clientId;
+			return this;
+		}
+
+		public Builder setOptTopicPrefix(String optTopicPrefix) {
+			this.optTopicPrefix = optTopicPrefix;
 			return this;
 		}
 
@@ -68,6 +75,11 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 
 		public Builder setDebugMode(boolean debugMode) {
 			this.debugMode = debugMode;
+			return this;
+		}
+
+		public Builder setRetainMessages(boolean retainMessages) {
+			this.retainMessages = retainMessages;
 			return this;
 		}
 
@@ -113,6 +125,11 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	}
 
 	@Override
+	public String optTopicPrefix() {
+		return this.builder.optTopicPrefix;
+	}
+
+	@Override
 	public String username() {
 		return this.builder.username;
 	}
@@ -135,5 +152,10 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	@Override
 	public String trustStorePem() {
 		return this.builder.trustStorePem;
+	}
+
+	@Override
+	public boolean retainMessages() {
+		return this.builder.retainMessages;
 	}
 }
