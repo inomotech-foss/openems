@@ -23,7 +23,6 @@ import org.osgi.service.metatype.annotations.Designate;
 
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
-import eu.chargetime.ocpp.model.core.DataTransferRequest;
 import io.openems.common.exceptions.OpenemsError;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.exceptions.OpenemsException;
@@ -134,15 +133,16 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 			@Override
 			public Request setChargePowerLimit(int chargePower) {
-				var request = new DataTransferRequest("Alfen");
 				var phases = evcs.getPhasesAsInt();
 				var target = Math.round(chargePower / phases / 230.0);
 				var maxCurrent = evcs.getMaximumHardwarePower().orElse(DEFAULT_HARDWARE_LIMIT) / phases / 230;
 
+
 				target = target > maxCurrent ? maxCurrent : target;
-				request.setMessageId("SetLimit");
-				request.setData("logicalid=" + EvcsOcppAlfenEveSingleImpl.this.config.ocppId() + ";value="
-						+ String.valueOf(target));
+				
+
+				var request = new ChangeConfigurationRequest("Station-MaxCurrent", String.valueOf(target));
+				
 				return request;
 			}
 

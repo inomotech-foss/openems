@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -402,6 +403,8 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 
 		Request request = this.getStandardRequests().setChargePowerLimit(power);
 
+		AtomicBoolean success = new AtomicBoolean(false);
+
 		try {
 			this.ocppServer.send(this.sessionId, request).whenComplete((confirmation, throwable) -> {
 				if (throwable != null) {
@@ -410,9 +413,11 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 				}
 
 				this.logInfo(this.log, confirmation.toString());
+				
+				success.set(confirmation.toString().contains("Accepted"));
 			});
 
-			return true;
+			return success.get();
 
 		} catch (OccurenceConstraintException e) {
 			this.logWarn(this.log, "The request is not a valid OCPP request.");
@@ -421,6 +426,6 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		} catch (NotConnectedException e) {
 			this.logWarn(this.log, "The server is not connected.");
 		}
-		return false;
+		return success.get();
 	}
 }
