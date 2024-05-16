@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.osgi.service.component.ComponentContext;
@@ -413,10 +414,9 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 				}
 
 				this.logInfo(this.log, confirmation.toString());
-				
-				success.set(confirmation.toString().contains("Accepted"));
-			});
 
+				success.set(confirmation.toString().contains("Accepted"));
+			}).toCompletableFuture().get();
 			return success.get();
 
 		} catch (OccurenceConstraintException e) {
@@ -425,6 +425,10 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 			this.logWarn(this.log, "This feature is not implemented by the charging station.");
 		} catch (NotConnectedException e) {
 			this.logWarn(this.log, "The server is not connected.");
+		} catch (InterruptedException e) {
+			this.logWarn(this.log, "The thread has been interrupted during sleep");
+		} catch (ExecutionException e) {
+			this.logWarn(this.log, "The task aborted whenWhen attempting to retrieve the result.");
 		}
 		return success.get();
 	}
