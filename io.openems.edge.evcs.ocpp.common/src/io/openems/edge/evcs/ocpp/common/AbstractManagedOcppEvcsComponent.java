@@ -384,26 +384,16 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		return this.setPower(power);
 	}
 
+	public boolean applyChargeCurrentLimit(int current) throws OpenemsException {
+		return this.setCurrent(current);
+	}
+
 	@Override
 	public boolean pauseChargeProcess() throws OpenemsException {
 		return this.setPower(0);
 	}
 
-	/**
-	 * Sets the current or power depending on the setChargePowerLimit
-	 * StandardRequest implementation of the charger.
-	 * 
-	 * <p>
-	 * Depending on the charger implementation it will send different requests with
-	 * different units.
-	 * 
-	 * @param power Power that should be send
-	 * @return Returns true if the power was set correctly.
-	 */
-	private boolean setPower(int power) {
-
-		Request request = this.getStandardRequests().setChargePowerLimit(power);
-
+	private boolean applyLimit(Request request) {
 		AtomicBoolean success = new AtomicBoolean(false);
 
 		try {
@@ -431,5 +421,24 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 			this.logWarn(this.log, "The task aborted whenWhen attempting to retrieve the result.");
 		}
 		return success.get();
+	}
+
+	/**
+	 * Sets the current or power depending on the setChargePowerLimit
+	 * StandardRequest implementation of the charger.
+	 * 
+	 * <p>
+	 * Depending on the charger implementation it will send different requests with
+	 * different units.
+	 * 
+	 * @param power Power that should be send
+	 * @return Returns true if the power was set correctly.
+	 */
+	private boolean setPower(int power) {
+		return this.applyLimit(this.getStandardRequests().setChargePowerLimit(power));
+	}
+
+	private boolean setCurrent(int current) {
+		return this.applyLimit(this.getStandardRequests().setChargeCurrentLimit(current));
 	}
 }

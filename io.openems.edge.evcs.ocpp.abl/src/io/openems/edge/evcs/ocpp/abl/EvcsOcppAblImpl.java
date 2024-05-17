@@ -147,6 +147,21 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 						"logicalid=" + EvcsOcppAblImpl.this.config.limitId() + ";value=" + String.valueOf(target));
 				return request;
 			}
+			
+			@Override
+			public Request setChargeCurrentLimit(int chargeCurrent) {
+				var request = new DataTransferRequest("ABL");
+				var phases = evcs.getPhasesAsInt();
+				var target = Math.round(chargeCurrent);
+				var maxCurrent = evcs.getMaximumHardwarePower().orElse(DEFAULT_HARDWARE_LIMIT) / phases / 230;
+
+				target = target > maxCurrent ? maxCurrent : target;
+				request.setMessageId("SetLimit");
+				request.setData(
+						"logicalid=" + EvcsOcppAblImpl.this.config.limitId() + ";value=" + String.valueOf(target));
+				return request;
+				
+			}
 
 			@Override
 			public Request setDisplayText(String text) {

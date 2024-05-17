@@ -141,6 +141,11 @@ public class EvcsOcppIesKeywattSingleImpl extends AbstractManagedOcppEvcsCompone
 
 				return new ChangeConfigurationRequest("PowerLimit", String.valueOf(chargePower));
 			}
+			
+			@Override
+			public Request setChargeCurrentLimit(int chargeCurrent) {
+				return new ChangeConfigurationRequest("CurrentLimit", String.valueOf(chargeCurrent));
+			}
 
 			@Override
 			public Request setDisplayText(String text) {

@@ -134,18 +134,27 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 			@Override
 			public Request setChargePowerLimit(int chargePower) {
-				long target;
 				if (chargePower == 0) {
 					// TODO: set the right transactionId
 					return new RemoteStopTransactionRequest(0);
 				} else {
 					var phases = evcs.getPhasesAsInt();
-					target = Math.round(chargePower / phases / 230.0);
+					var target = Math.round(chargePower / phases / 230.0);
 					var maxCurrent = evcs.getMaximumHardwarePower().orElse(DEFAULT_HARDWARE_LIMIT) / phases / 230;
 
 					target = target > maxCurrent ? maxCurrent : target;
 
 					return new ChangeConfigurationRequest("Station-MaxCurrent", String.valueOf(target));
+				}
+			}
+			
+			@Override
+			public Request setChargeCurrentLimit(int chargeCurrent) {
+				if (chargeCurrent == 0) {
+					// TODO: set the right transactionId
+					return new RemoteStopTransactionRequest(0);
+				} else {
+					return new ChangeConfigurationRequest("Station-MaxCurrent", String.valueOf(chargeCurrent));
 				}
 			}
 
@@ -232,6 +241,8 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 		switch (request.getMethod()) {
 		case ApplyChargePowerLimitRequest.METHOD:
 			return this.handleApplyChargePowerLimitRequest(user, ApplyChargePowerLimitRequest.from(request));
+		case ApplyChargeCurrentLimitRequest.METHOD:
+			return this.handleApplyChargeCurrentLimitRequest(user, ApplyChargeCurrentLimitRequest.from(request));
 		default:
 			throw new OpenemsNamedException(OpenemsError.JSONRPC_UNHANDLED_METHOD, request.getMethod());
 		}
@@ -245,6 +256,16 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 		var response = new ApplyChargePowerLimitResponse(request.getId(), success);
 
+		return CompletableFuture.completedFuture(response);
+	}
+	
+	private CompletableFuture<JsonrpcResponseSuccess> handleApplyChargeCurrentLimitRequest(User user, ApplyChargeCurrentLimitRequest request) throws OpenemsException {
+		var chargeCurrentLimit = request.getChargeCurrentLimit();
+		
+		boolean success = this.applyChargeCurrentLimit(chargeCurrentLimit);
+		
+		var response = new ApplyChargeCurrentLimitResponse(request.getId(), success);
+		
 		return CompletableFuture.completedFuture(response);
 	}
 }
