@@ -23,6 +23,7 @@ import org.osgi.service.metatype.annotations.Designate;
 
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
+import eu.chargetime.ocpp.model.core.RemoteStopTransactionRequest;
 import io.openems.common.exceptions.OpenemsError;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.exceptions.OpenemsException;
@@ -133,17 +134,19 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 			@Override
 			public Request setChargePowerLimit(int chargePower) {
-				var phases = evcs.getPhasesAsInt();
-				var target = Math.round(chargePower / phases / 230.0);
-				var maxCurrent = evcs.getMaximumHardwarePower().orElse(DEFAULT_HARDWARE_LIMIT) / phases / 230;
+				long target;
+				if (chargePower == 0) {
+					// TODO: set the right transactionId
+					return new RemoteStopTransactionRequest(0);
+				} else {
+					var phases = evcs.getPhasesAsInt();
+					target = Math.round(chargePower / phases / 230.0);
+					var maxCurrent = evcs.getMaximumHardwarePower().orElse(DEFAULT_HARDWARE_LIMIT) / phases / 230;
 
+					target = target > maxCurrent ? maxCurrent : target;
 
-				target = target > maxCurrent ? maxCurrent : target;
-				
-
-				var request = new ChangeConfigurationRequest("Station-MaxCurrent", String.valueOf(target));
-				
-				return request;
+					return new ChangeConfigurationRequest("Station-MaxCurrent", String.valueOf(target));
+				}
 			}
 
 			@Override
