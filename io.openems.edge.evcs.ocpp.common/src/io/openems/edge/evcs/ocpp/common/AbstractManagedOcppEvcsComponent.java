@@ -18,6 +18,14 @@ import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
 import eu.chargetime.ocpp.model.Request;
+import eu.chargetime.ocpp.model.core.ChargingProfile;
+import eu.chargetime.ocpp.model.core.ChargingProfileKindType;
+import eu.chargetime.ocpp.model.core.ChargingProfilePurposeType;
+import eu.chargetime.ocpp.model.core.ChargingRateUnitType;
+import eu.chargetime.ocpp.model.core.ChargingSchedule;
+import eu.chargetime.ocpp.model.core.ChargingSchedulePeriod;
+import eu.chargetime.ocpp.model.core.RemoteStartTransactionRequest;
+import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
 import io.openems.common.exceptions.OpenemsException;
 import io.openems.common.types.ChannelAddress;
 import io.openems.common.types.OpenemsType;
@@ -76,6 +84,8 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 	private final ChargeSessionStamp sessionStart = new ChargeSessionStamp();
 
 	private final ChargeSessionStamp sessionEnd = new ChargeSessionStamp();
+
+	private boolean transactionAcitve = false;
 
 	protected AbstractManagedOcppEvcsComponent(OcppProfileType[] profileTypes,
 			io.openems.edge.common.channel.ChannelId[] firstInitialChannelIds,
@@ -312,6 +322,14 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		}
 	}
 
+	public void setTransactionActive(boolean transactionActive) {
+		this.transactionAcitve = transactionActive;
+	}
+
+	public boolean getTransactionActive() {
+		return this.transactionAcitve;
+	}
+
 	public ChargingProperty getLastChargingProperty() {
 		return this.lastChargingProperty;
 	}
@@ -379,6 +397,73 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		return false;
 	}
 
+	// TODO: maybe this is needed or maybe not...
+	protected boolean remoteStartTransaction(String idTag) {
+		AtomicBoolean success = new AtomicBoolean(false);
+		try {
+			var request = new RemoteStartTransactionRequest(idTag);
+			this.ocppServer.send(this.sessionId, request).whenComplete((confirmation, throwable) -> {
+				if (throwable != null) {
+					throwable.printStackTrace();
+					return;
+				}
+
+				this.logInfo(this.log, confirmation.toString());
+
+				success.set(confirmation.toString().contains("Accepted"));
+			}).toCompletableFuture().get();
+			return success.get();
+		} catch (OccurenceConstraintException e) {
+			this.logWarn(this.log, "The request is not a valid OCPP request.");
+		} catch (UnsupportedFeatureException e) {
+			this.logWarn(this.log, "This feature is not implemented by the charging station.");
+		} catch (NotConnectedException e) {
+			this.logWarn(this.log, "The server is not connected.");
+		} catch (InterruptedException e) {
+			this.logWarn(this.log, "The thread has been interrupted during sleep");
+		} catch (ExecutionException e) {
+			this.logWarn(this.log, "The task aborted whenWhen attempting to retrieve the result.");
+		}
+		return success.get();
+	}
+
+	protected boolean setChargingProfileCurrentLimit(Integer connectorId, double currentLimit) {
+		AtomicBoolean success = new AtomicBoolean(false);
+
+		try {
+			ChargingSchedulePeriod schedulePeriod[] = { new ChargingSchedulePeriod(0, currentLimit) };
+			ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
+
+			var profile = new ChargingProfile(1, 0, ChargingProfilePurposeType.ChargePointMaxProfile,
+					ChargingProfileKindType.Absolute, schedule);
+
+			var request = new SetChargingProfileRequest(connectorId, profile);
+			this.ocppServer.send(this.sessionId, request).whenComplete((confirmation, throwable) -> {
+				if (throwable != null) {
+					throwable.printStackTrace();
+					return;
+				}
+
+				this.logInfo(this.log, confirmation.toString());
+
+				success.set(confirmation.toString().contains("Accepted"));
+			}).toCompletableFuture().get();
+			return success.get();
+		} catch (OccurenceConstraintException e) {
+			this.logWarn(this.log, "The request is not a valid OCPP request.");
+		} catch (UnsupportedFeatureException e) {
+			this.logWarn(this.log, "This feature is not implemented by the charging station.");
+		} catch (NotConnectedException e) {
+			this.logWarn(this.log, "The server is not connected.");
+		} catch (InterruptedException e) {
+			this.logWarn(this.log, "The thread has been interrupted during sleep");
+		} catch (ExecutionException e) {
+			this.logWarn(this.log, "The task aborted whenWhen attempting to retrieve the result.");
+		}
+
+		return success.get();
+	}
+
 	@Override
 	public boolean applyChargePowerLimit(int power) throws OpenemsException {
 		return this.setPower(power);
@@ -441,4 +526,5 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 	private boolean setCurrent(int current) {
 		return this.applyLimit(this.getStandardRequests().setChargeCurrentLimit(current));
 	}
+
 }

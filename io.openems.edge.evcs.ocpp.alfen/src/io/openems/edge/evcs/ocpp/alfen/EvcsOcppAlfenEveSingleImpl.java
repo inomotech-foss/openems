@@ -23,7 +23,13 @@ import org.osgi.service.metatype.annotations.Designate;
 
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
-import eu.chargetime.ocpp.model.core.RemoteStopTransactionRequest;
+import eu.chargetime.ocpp.model.core.ChargingProfile;
+import eu.chargetime.ocpp.model.core.ChargingProfileKindType;
+import eu.chargetime.ocpp.model.core.ChargingProfilePurposeType;
+import eu.chargetime.ocpp.model.core.ChargingRateUnitType;
+import eu.chargetime.ocpp.model.core.ChargingSchedule;
+import eu.chargetime.ocpp.model.core.ChargingSchedulePeriod;
+import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
 import io.openems.common.exceptions.OpenemsError;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.exceptions.OpenemsException;
@@ -72,6 +78,8 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 	);
 
 	private Config config;
+
+	private int latestCurrentLimit = 0;
 
 	@Reference(policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.OPTIONAL)
 	private volatile Timedata timedata = null;
@@ -125,7 +133,6 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 		super.handleEvent(event);
 	}
 
-	// TODO adapt this method
 	@Override
 	public OcppStandardRequests getStandardRequests() {
 		AbstractManagedOcppEvcsComponent evcs = this;
@@ -134,28 +141,46 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 			@Override
 			public Request setChargePowerLimit(int chargePower) {
-				if (chargePower == 0) {
-					// TODO: set the right transactionId
-					return new RemoteStopTransactionRequest(0);
-				} else {
-					var phases = evcs.getPhasesAsInt();
-					var target = Math.round(chargePower / phases / 230.0);
-					var maxCurrent = evcs.getMaximumHardwarePower().orElse(DEFAULT_HARDWARE_LIMIT) / phases / 230;
+				var phases = evcs.getPhasesAsInt();
+				var target = Math.round(chargePower / phases / 230.0);
+				var maxCurrent = evcs.getMaximumHardwarePower().orElse(DEFAULT_HARDWARE_LIMIT) / phases / 230;
 
-					target = target > maxCurrent ? maxCurrent : target;
+				target = target > maxCurrent ? maxCurrent : target;
 
-					return new ChangeConfigurationRequest("Station-MaxCurrent", String.valueOf(target));
-				}
+				return new ChangeConfigurationRequest("Station-MaxCurrent", String.valueOf(target));
+
 			}
-			
+
 			@Override
 			public Request setChargeCurrentLimit(int chargeCurrent) {
-				if (chargeCurrent == 0) {
-					// TODO: set the right transactionId
-					return new RemoteStopTransactionRequest(0);
-				} else {
-					return new ChangeConfigurationRequest("Station-MaxCurrent", String.valueOf(chargeCurrent));
-				}
+				//latestCurrentLimit = chargeCurrent;
+				
+				ChargingSchedulePeriod schedulePeriod[] = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
+				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
+
+				ChargingProfilePurposeType purpose;
+				int chargingProfileId;
+				int stackLevel;
+				
+								
+				// TODO: if a transaction is active, send TxProfile, otherwise TxDefaultProfile
+//				if(getTransactionActive()) {
+//					purpose = ChargingProfilePurposeType.TxProfile;
+//					chargingProfileId = 1;
+//					stackLevel = 5;
+//				} else {
+//					purpose = ChargingProfilePurposeType.TxDefaultProfile;
+//					chargingProfileId = 2;
+//					stackLevel = 1;
+//				}
+				// These parameter values are for testing the optimizer on single connector evcs.
+				purpose = ChargingProfilePurposeType.ChargePointMaxProfile;
+				chargingProfileId = 1;
+				stackLevel = 4;
+				
+				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose, ChargingProfileKindType.Absolute, schedule);
+						
+				return new SetChargingProfileRequest(/*getConfiguredConnectorId()*/0, profile);
 			}
 
 			@Override
@@ -258,14 +283,15 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 		return CompletableFuture.completedFuture(response);
 	}
-	
-	private CompletableFuture<JsonrpcResponseSuccess> handleApplyChargeCurrentLimitRequest(User user, ApplyChargeCurrentLimitRequest request) throws OpenemsException {
+
+	private CompletableFuture<JsonrpcResponseSuccess> handleApplyChargeCurrentLimitRequest(User user,
+			ApplyChargeCurrentLimitRequest request) throws OpenemsException {
 		var chargeCurrentLimit = request.getChargeCurrentLimit();
-		
+
 		boolean success = this.applyChargeCurrentLimit(chargeCurrentLimit);
-		
+
 		var response = new ApplyChargeCurrentLimitResponse(request.getId(), success);
-		
+
 		return CompletableFuture.completedFuture(response);
 	}
 }

@@ -351,7 +351,18 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 
 		var idTagInfo = new IdTagInfo(AuthorizationStatus.Accepted);
 		idTagInfo.setParentIdTag(request.getIdTag());
+		
+		
+		AbstractManagedOcppEvcsComponent evcs;
+		var evcss = this.getEvcssBySessionIndex(sessionIndex);
+		if (evcss.size() == 1) {
+			evcs = evcss.get(0);
+		} else {
+			evcs = this.getEvcsBySessionIndexAndConnector(sessionIndex, request.getConnectorId());
+		}
 
+		evcs.setTransactionActive(true);
+		
 		return new StartTransactionConfirmation(idTagInfo, request.getConnectorId());
 	}
 
@@ -371,6 +382,7 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 			evcs = this.getEvcsBySessionIndexAndConnector(sessionIndex, request.getTransactionId());
 		}
 		evcs._setStatus(Status.CHARGING_FINISHED);
+		evcs.setTransactionActive(false);
 
 		var response = new StopTransactionConfirmation();
 		response.setIdTagInfo(tag);
