@@ -16,7 +16,7 @@ RUN npm install && \
     node_modules/.bin/ng build -c "$VERSION";
 
 ### Build ui base
-FROM ghcr.io/linuxserver/baseimage-alpine:edge AS ui_base
+FROM --platform=$TARGETPLATFORM alpine:edge AS base_container
 
 RUN apk update && apk upgrade
 

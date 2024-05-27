@@ -11,7 +11,7 @@ RUN --mount=type=bind,target=.,readwrite \
         cp build/openems-backend.jar /opt
 
 ### Build jar container base
-FROM ghcr.io/linuxserver/baseimage-alpine:edge AS base_container
+FROM --platform=$TARGETPLATFORM alpine:edge AS base_container
 
 ARG JAVA_VERSION
 
