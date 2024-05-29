@@ -79,8 +79,6 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 	private Config config;
 
-	private int latestCurrentLimit = 0;
-
 	@Reference(policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.OPTIONAL)
 	private volatile Timedata timedata = null;
 
@@ -153,16 +151,15 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 			@Override
 			public Request setChargeCurrentLimit(int chargeCurrent) {
-				//latestCurrentLimit = chargeCurrent;
-				
+				// latestCurrentLimit = chargeCurrent;
+
 				ChargingSchedulePeriod schedulePeriod[] = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
 				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
 
 				ChargingProfilePurposeType purpose;
 				int chargingProfileId;
 				int stackLevel;
-				
-								
+
 				// TODO: if a transaction is active, send TxProfile, otherwise TxDefaultProfile
 //				if(getTransactionActive()) {
 //					purpose = ChargingProfilePurposeType.TxProfile;
@@ -173,14 +170,48 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 //					chargingProfileId = 2;
 //					stackLevel = 1;
 //				}
-				// These parameter values are for testing the optimizer on single connector evcs.
+				// These parameter values are for testing the optimizer on single connector
+				// evcs.
 				purpose = ChargingProfilePurposeType.ChargePointMaxProfile;
 				chargingProfileId = 1;
 				stackLevel = 4;
-				
-				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose, ChargingProfileKindType.Absolute, schedule);
-						
-				return new SetChargingProfileRequest(/*getConfiguredConnectorId()*/0, profile);
+
+				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose,
+						ChargingProfileKindType.Absolute, schedule);
+
+				return new SetChargingProfileRequest(/* getConfiguredConnectorId() */0, profile);
+			}
+
+			@Override
+			public Request setTxProfile(int connector, int chargeCurrent) {
+				if (connector != getConfiguredConnectorId()) {
+					return null;
+				}
+
+				ChargingSchedulePeriod schedulePeriod[] = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
+				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
+				ChargingProfilePurposeType purpose = ChargingProfilePurposeType.TxProfile;
+				int chargingProfileId = 1;
+				int stackLevel = 5;
+
+				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose,
+						ChargingProfileKindType.Absolute, schedule);
+
+				return new SetChargingProfileRequest(getConfiguredConnectorId(), profile);
+			}
+
+			@Override
+			public Request setTxDefaultProfile(int connector, int chargeCurrent) {
+				ChargingSchedulePeriod schedulePeriod[] = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
+				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
+				ChargingProfilePurposeType purpose = ChargingProfilePurposeType.TxDefaultProfile;
+				int chargingProfileId = 1;
+				int stackLevel = 5;
+
+				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose,
+						ChargingProfileKindType.Absolute, schedule);
+
+				return new SetChargingProfileRequest(connector, profile);
 			}
 
 			@Override
@@ -287,8 +318,9 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 	private CompletableFuture<JsonrpcResponseSuccess> handleApplyChargeCurrentLimitRequest(User user,
 			ApplyChargeCurrentLimitRequest request) throws OpenemsException {
 		var chargeCurrentLimit = request.getChargeCurrentLimit();
+		var connectorId = request.getConnectorId();
 
-		boolean success = this.applyChargeCurrentLimit(chargeCurrentLimit);
+		boolean success = this.applyChargeCurrentLimit(connectorId, chargeCurrentLimit);
 
 		var response = new ApplyChargeCurrentLimitResponse(request.getId(), success);
 

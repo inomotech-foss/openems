@@ -469,8 +469,8 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		return this.setPower(power);
 	}
 
-	public boolean applyChargeCurrentLimit(int current) throws OpenemsException {
-		return this.setCurrent(current);
+	public boolean applyChargeCurrentLimit(int connectorId, int current) throws OpenemsException {
+		return this.setCurrent(connectorId, current);
 	}
 
 	@Override
@@ -479,6 +479,9 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 	}
 
 	private boolean applyLimit(Request request) {
+		if (request == null) {
+			return false;
+		}
 		AtomicBoolean success = new AtomicBoolean(false);
 
 		try {
@@ -523,8 +526,9 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		return this.applyLimit(this.getStandardRequests().setChargePowerLimit(power));
 	}
 
-	private boolean setCurrent(int current) {
-		return this.applyLimit(this.getStandardRequests().setChargeCurrentLimit(current));
+	private boolean setCurrent(int connectorId, int current) {
+		this.applyLimit(this.getStandardRequests().setTxProfile(connectorId, current));
+		return this.applyLimit(this.getStandardRequests().setTxDefaultProfile(connectorId, current));
 	}
 
 }

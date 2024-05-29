@@ -16,8 +16,12 @@ public interface OcppStandardRequests {
 	 * @return Valid request that can be sent to the EVCS.
 	 */
 	Request setChargePowerLimit(int chargePower);
-	
+
 	Request setChargeCurrentLimit(int chargeCurrent);
+
+	Request setTxProfile(int connectorId, int chargeCurrent);
+
+	Request setTxDefaultProfile(int connectorId, int chargeCurrent);
 
 	/**
 	 * Should return an OCPP request that would set the display text to the given

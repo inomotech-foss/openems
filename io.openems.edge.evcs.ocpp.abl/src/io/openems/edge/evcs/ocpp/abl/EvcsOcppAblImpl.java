@@ -147,7 +147,7 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 						"logicalid=" + EvcsOcppAblImpl.this.config.limitId() + ";value=" + String.valueOf(target));
 				return request;
 			}
-			
+
 			@Override
 			public Request setChargeCurrentLimit(int chargeCurrent) {
 				var request = new DataTransferRequest("ABL");
@@ -160,7 +160,17 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 				request.setData(
 						"logicalid=" + EvcsOcppAblImpl.this.config.limitId() + ";value=" + String.valueOf(target));
 				return request;
-				
+
+			}
+
+			@Override
+			public Request setTxProfile(int connectorId, int chargeCurrent) {
+				return null;
+			}
+
+			@Override
+			public Request setTxDefaultProfile(int connectorId, int chargeCurrent) {
+				return null;
 			}
 
 			@Override
