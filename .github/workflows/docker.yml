@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - inomo-develop
-      - IOT-253-Docker
-    tags:
-      - "*.*.*"
+
+    # tags:
+    #   - "*.*.*"
       
 jobs:
   docker:
