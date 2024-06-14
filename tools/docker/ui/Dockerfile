@@ -24,7 +24,7 @@ RUN apk add --no-cache \
     nginx openssl
 	
 ### Build ui container
-FROM ui_base
+FROM base_container
 
 COPY --from=build_ui /src/target/ /var/www/html/openems/
 COPY tools/docker/ui/assets/ /var/www/html/openems/assets/
