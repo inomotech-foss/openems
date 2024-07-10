@@ -24,7 +24,7 @@ import io.openems.common.channel.PersistencePriority;
 	String clientId() default "edge0";
 
 	@AttributeDefinition(name = "Topic prefix", description = "Optional topic prefix (<topic_prefix>/edge/<edge_id>/...)")
-	String optTopicPrefix();
+	String topicPrefix() default "";
 
 	@AttributeDefinition(name = "Retain Messages for topicEdgeConfig", description = "If enabled, messages published to topicEdgeConfig will be retained.")
 	boolean retainMessages() default false;
