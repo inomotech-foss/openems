@@ -12,7 +12,7 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 		private PersistencePriority persistencePriority;
 		private boolean debugMode;
 		private String clientId;
-		private String optTopicPrefix;
+		private String topicPrefix;
 		private boolean retainMessages;
 		private String username;
 		private String password;
@@ -38,7 +38,7 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 			return this;
 		}
 
-		public Builder setOptTopicPrefix(String optTopicPrefix) {
+		public Builder setTopicPrefix(String TopicPrefix) {
 			this.optTopicPrefix = optTopicPrefix;
 			return this;
 		}
