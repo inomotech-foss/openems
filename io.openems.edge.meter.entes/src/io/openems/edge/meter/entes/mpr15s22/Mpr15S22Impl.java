@@ -80,7 +80,7 @@ public class Mpr15S22Impl extends AbstractOpenemsModbusComponent
 	}
 
 	@Override
-	protected ModbusProtocol defineModbusProtocol() throws OpenemsException {
+	protected ModbusProtocol defineModbusProtocol() {
 		return new ModbusProtocol(this, //
 				// refer to https://www.entes.eu/uploads/files/MPR-1X_Register_Table_EN.pdf
 				// Measurement registers
