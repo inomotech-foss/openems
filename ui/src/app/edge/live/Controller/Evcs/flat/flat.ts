@@ -1,3 +1,4 @@
+// @ts-strict-ignore
 import { Component } from '@angular/core';
 import { AbstractFlatWidget } from 'src/app/shared/genericComponents/flat/abstract-flat-widget';
 import { DefaultTypes } from 'src/app/shared/service/defaulttypes';
@@ -43,14 +44,7 @@ export class FlatComponent extends AbstractFlatWidget {
   protected status: string;
 
   protected override getChannelAddresses(): ChannelAddress[] {
-    let controllers = this.config.getComponentsByFactory("Controller.Evcs");
-    for (let controller of controllers) {
-      let properties = controller.properties;
-      if ("evcs.id" in properties && properties["evcs.id"] === this.componentId) {
-        this.controller = controller;
-      }
-    }
-    return [
+    const result = [
       new ChannelAddress(this.component.id, 'ChargePower'),
       new ChannelAddress(this.component.id, 'Phases'),
       new ChannelAddress(this.component.id, 'Plug'),
@@ -61,8 +55,17 @@ export class FlatComponent extends AbstractFlatWidget {
       new ChannelAddress(this.component.id, 'MinimumHardwarePower'),
       new ChannelAddress(this.component.id, 'MaximumHardwarePower'),
       new ChannelAddress(this.component.id, 'SetChargePowerLimit'),
-      new ChannelAddress(this.controller.id, '_PropertyEnabledCharging'),
     ];
+
+    const controllers = this.config.getComponentsByFactory("Controller.Evcs");
+    for (const controller of controllers) {
+      const properties = controller.properties;
+      if ("evcs.id" in properties && properties["evcs.id"] === this.componentId) {
+        this.controller = controller;
+        result.push(new ChannelAddress(controller.id, '_PropertyEnabledCharging'));
+      }
+    }
+    return result;
   }
 
   protected override onCurrentData(currentData: CurrentData) {
@@ -162,7 +165,7 @@ export class FlatComponent extends AbstractFlatWidget {
   }
 
   formatNumber(i: number) {
-    let round = Math.ceil(i / 100) * 100;
+    const round = Math.ceil(i / 100) * 100;
     return round;
   }
 
@@ -187,7 +190,7 @@ enum ChargeState {
   ERROR,                    //Error
   AUTHORIZATION_REJECTED,   //Authorization rejected
   ENERGY_LIMIT_REACHED,     //Energy limit reached
-  CHARGING_FINISHED         //Charging has finished
+  CHARGING_FINISHED,         //Charging has finished
 }
 
 
@@ -197,9 +200,9 @@ enum ChargePlug {
   PLUGGED_ON_EVCS,                          //Plugged on EVCS
   PLUGGED_ON_EVCS_AND_LOCKED = 3,           //Plugged on EVCS and locked
   PLUGGED_ON_EVCS_AND_ON_EV = 5,            //Plugged on EVCS and on EV
-  PLUGGED_ON_EVCS_AND_ON_EV_AND_LOCKED = 7  //Plugged on EVCS and on EV and locked
+  PLUGGED_ON_EVCS_AND_ON_EV_AND_LOCKED = 7,  //Plugged on EVCS and on EV and locked
 }
 enum Prioritization {
   CAR,
-  STORAGE
+  STORAGE,
 }

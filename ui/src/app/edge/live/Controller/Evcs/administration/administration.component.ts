@@ -1,3 +1,4 @@
+// @ts-strict-ignore
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController } from '@ionic/angular';
@@ -10,8 +11,8 @@ import { Edge, EdgeConfig, Service, Websocket } from '../../../../../shared/shar
 })
 export class AdministrationComponent implements OnInit {
 
-  @Input() public evcsComponent: EdgeConfig.Component;
-  @Input() public edge: Edge;
+  @Input({ required: true }) public evcsComponent!: EdgeConfig.Component;
+  @Input({ required: true }) public edge!: Edge;
 
   private static readonly SELECTOR = "administration";
 
@@ -36,7 +37,7 @@ export class AdministrationComponent implements OnInit {
 
   updateZoeMode(event: CustomEvent) {
     let newValue = this.evcsComponent.properties['minHwCurrent'];
-    let oldValue = this.evcsComponent.properties['minHwCurrent'];
+    const oldValue = this.evcsComponent.properties['minHwCurrent'];
 
     if (event.detail.checked == true) {
       newValue = 10000;
