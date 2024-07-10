@@ -125,8 +125,8 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	}
 
 	@Override
-	public String optTopicPrefix() {
-		return this.builder.optTopicPrefix;
+	public String topicPrefix() {
+		return this.builder.topicPrefix;
 	}
 
 	@Override
