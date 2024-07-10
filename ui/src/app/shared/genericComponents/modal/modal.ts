@@ -10,7 +10,7 @@ import { Icon } from "../../type/widget";
 export enum Status {
     SUCCESS,
     ERROR,
-    PENDING
+    PENDING,
 }
 
 @Component({
@@ -29,7 +29,7 @@ export class ModalComponent {
     @Input() protected formGroup: FormGroup = new FormGroup({});
 
     /** Title in Header */
-    @Input() public title: string;
+    @Input({ required: true }) public title!: string;
 
     @Input() protected toolbarButtons: { url: string, icon: Icon }[] | { url: string, icon: Icon } | {
         callback: () =>
