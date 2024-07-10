@@ -78,8 +78,8 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 	private volatile Timedata timedata = null;
 
 	@Reference
+	protected ComponentManager componentManager;
 
-	
 	private String topicEdgeConfig;
 
 	public ControllerApiMqttImpl() {
@@ -173,33 +173,33 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 		if (!this.isEnabled()) {
 			return;
 		}
-			switch (event.getTopic()) {
-				ase EdgeEventConstants.TOPIC_CYCLE_AFTER_PR
-				this.s
+		switch (event.getTopic()) {
+			case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE:
+				this.sendChannelValuesWorker.collectData();
+				break;
 
-			
-				ase EdgeEventConstants
+			case EdgeEventConstants.TOPIC_CONFIG_UPDATE:
 				// Send new EdgeConfig
-				var config = (EdgeConfig) event.getProperty(EdgeEventConstants.TOPIC_CONF
-					or (Map.Entry<String, JsonEl
+				var config = (EdgeConfig) event.getProperty(EdgeEventConstants.TOPIC_CONFIG_UPDATE_KEY);
+				for (Map.Entry<String, JsonElement> entry : config.toJson().entrySet()) {
 					String key = entry.getKey();
-					JsonElement value = entry.g
-						f (value.isJsonObject()) {
+					JsonElement value = entry.getValue();
+					if (value.isJsonObject()) {
 						JsonObject subObject = value.getAsJsonObject();
-							or (Map.Entry<String, JsonElement>
+						for (Map.Entry<String, JsonElement> subEntry : subObject.entrySet()) {
 							String subKey = subEntry.getKey();
 							JsonElement subValue = subEntry.getValue();
-							this.topicEdgeConfig = String.format(ControllerApiMqtt.TOP
-									is.publish(this.topicEdgeConfig, subValue.toString(), //
-									
-							
-						
-					
+							this.topicEdgeConfig = String.format(ControllerApiMqtt.TOPIC_EDGE_CONFIG, key, subKey);
+							this.publish(this.topicEdgeConfig, subValue.toString(), //
+									1 /* QOS */, this.config.retainMessages() /* retain default false */,
+									new MqttProperties() /* no specific properties */);
+						}
+					}
 				}
-				// Trigger sen
+				// Trigger sending of all channel values, because a Component might have
 				// disappeared
 				this.sendChannelValuesWorker.sendValuesOfAllChannelsOnce();
-			break;
+				break;
 		}
 	}
 
