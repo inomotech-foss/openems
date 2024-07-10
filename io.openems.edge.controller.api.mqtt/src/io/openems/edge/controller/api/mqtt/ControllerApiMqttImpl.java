@@ -2,7 +2,6 @@ package io.openems.edge.controller.api.mqtt;
 
 import static io.openems.common.utils.ThreadPoolUtils.shutdownAndAwaitTermination;
 
-import java.io.ObjectInputFilter.Config;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -68,7 +67,11 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 	private final SendChannelValuesWorker sendChannelValuesWorker = new SendChannelValuesWorker(this);
 	private final MqttConnector mqttConnector = new MqttConnector();
 
+	protected Config config;
+
 	private volatile ScheduledFuture<?> reconnectFuture = null;
+	private String topicPrefix;
+	private IMqttClient mqttClient = null;
 
 	@Reference(policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.OPTIONAL)
 	private volatile Timedata timedata = null;
@@ -76,11 +79,8 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 	@Reference
 	protected ComponentManager componentManager;
 
-	protected Config config;
 
-	private String topicPrefix;
 	private String topicEdgeConfig;
-	private IMqttClient mqttClient = null;
 
 	public ControllerApiMqttImpl() {
 		super(//
@@ -95,7 +95,7 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 		this.config = config;
 
 		// Publish MQTT messages under the topic "edge/edge0/..."
-		this.topicPrefix = String.format(ControllerApiMqtt.TOPIC_CHANNEL_PREFIX, config.clientId());
+		this.topicPrefix = String.format(ControllerApiMqtt.TOPIC_PREFIX, config.clientId());
 
 		// check for optional prefix and prepend it to the topic prefix
 		String optPrefix = config.optTopicPrefix();
@@ -173,32 +173,31 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 		if (!this.isEnabled()) {
 			return;
 		}
-			switch (event.getTopic()) {
-				ase EdgeEventConstants.TOPIC_CYCLE_AFTER_PR
-				this.s
+		switch (event.getTopic()) {
+		case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE:
+			this.sendChannelValuesWorker.collectData();
+			break;
 
-			
-				ase EdgeEventConstants
-				// Send new EdgeConfig
-				var config = (EdgeConfig) event.getProperty(EdgeEventConstants.TOPIC_CONF
-					or (Map.Entry<String, JsonEl
-					String key = entry.getKey();
-					JsonElement value = entry.g
-						f (value.isJsonObject()) {
-						JsonObject subObject = value.getAsJsonObject();
-							or (Map.Entry<String, JsonElement>
-							String subKey = subEntry.getKey();
-							JsonElement subValue = subEntry.getValue();
-							this.topicEdgeConfig = String.format(ControllerApiMqtt.TOP
-									is.publish(this.topicEdgeConfig, subValue.toString(), //
-									
-							
-						
-					
+		case EdgeEventConstants.TOPIC_CONFIG_UPDATE:
+			// Send new EdgeConfig
+			var config = (EdgeConfig) event.getProperty(EdgeEventConstants.TOPIC_CONFIG_UPDATE_KEY);
+			for (Map.Entry<String, JsonElement> entry : config.toJson().entrySet()) {
+				String key = entry.getKey();
+				JsonElement value = entry.getValue();
+				if (value.isJsonObject()) {
+					JsonObject subObject = value.getAsJsonObject();
+					for (Map.Entry<String, JsonElement> subEntry : subObject.entrySet()) {
+						String subKey = subEntry.getKey();
+						JsonElement subValue = subEntry.getValue();
+						this.topicEdgeConfig = String.format(ControllerApiMqtt.TOPIC_EDGE_CONFIG, key, subKey);
+						this.publish(this.topicEdgeConfig, subValue.toString(), //
+								1 /* QOS */, this.config.retainMessages() /* retain default false */, new MqttProperties() /* no specific properties */);
+					}
 				}
-				// Trigger sen
-				// disappeared
-				this.sendChannelValuesWorker.sendValuesOfAllChannelsOnce();
+			}
+			// Trigger sending of all channel values, because a Component might have
+			// disappeared
+			this.sendChannelValuesWorker.sendValuesOfAllChannelsOnce();
 			break;
 		}
 	}
@@ -207,9 +206,8 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 	 * Publish a message to a topic.
 	 *
 	 * @param subTopic the MQTT topic. The global MQTT Topic prefix is added in
-	 * 
-	  
-	 * 
+	 *                 front of this string
+	 * @param message  the message
 	 * @return true if message was successfully published; false otherwise
 	 */
 	protected boolean publish(String subTopic, MqttMessage message) {
