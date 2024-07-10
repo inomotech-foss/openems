@@ -38,7 +38,7 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 			return this;
 		}
 
-		public Builder setTopicPrefix(String TopicPrefix) {
+		public Builder setTopicPrefix(String topicPrefix) {
 			this.topicPrefix = topicPrefix;
 			return this;
 		}
