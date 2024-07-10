@@ -199,12 +199,15 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 			this.sendChannelValuesWorker.sendValuesOfAllChannelsOnce();
 			break;
 		}
+	}
 
+	/**
 	 * Publish a message to a topic.
 	 *
 	 * @param subTopic the MQTT topic. The global MQTT Topic prefix is added in
 	 *                 front of this string
-	 * @param message  the message
+	 * 
+
 	 * @return true if message was successfully published; false otherwise
 	 */
 	protected boolean publish(String subTopic, MqttMessage message) {
