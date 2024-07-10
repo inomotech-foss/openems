@@ -67,11 +67,8 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 	private final SendChannelValuesWorker sendChannelValuesWorker = new SendChannelValuesWorker(this);
 	private final MqttConnector mqttConnector = new MqttConnector();
 
-	protected Config config;
 
 	private volatile ScheduledFuture<?> reconnectFuture = null;
-	private String topicPrefix;
-	private IMqttClient mqttClient = null;
 
 	@Reference(policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.OPTIONAL)
 	private volatile Timedata timedata = null;
@@ -180,31 +177,32 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 		case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE:
 			this.sendChannelValuesWorker.collectData();
 			break;
+			
+				ase EdgeEventConstants.TOPIC_CONFIG_UPDATE:
+				// Sen
 
-		case EdgeEventConstants.TOPIC_CONFIG_UPDATE:
-			// Send new EdgeConfig
-			var config = (EdgeConfig) event.getProperty(EdgeEventConstants.TOPIC_CONFIG_UPDATE_KEY);
-			for (Map.Entry<String, JsonElement> entry : config.toJson().entrySet()) {
-				String key = entry.getKey();
-				JsonElement value = entry.getValue();
-				if (value.isJsonObject()) {
-					JsonObject subObject = value.getAsJsonObject();
-					for (Map.Entry<String, JsonElement> subEntry : subObject.entrySet()) {
-						String subKey = subEntry.getKey();
-						JsonElement subValue = subEntry.getValue();
-						this.topicEdgeConfig = String.format(ControllerApiMqtt.TOPIC_EDGE_CONFIG, key, subKey);
-						this.publish(this.topicEdgeConfig, subValue.toString(), //
-								1 /* QOS */, this.config.retainMessages() /* retain default false */, new MqttProperties() /* no specific properties */);
-					}
-				}
-			}
-			// Trigger sending of all channel values, because a Component might have
-			// disappeared
-			this.sendChannelValuesWorker.sendValuesOfAllChannelsOnce();
-			break;
-		}
-	}
-
+				for (Map.Entry<String, JsonElement> entry :
+					String key = entry.ge
+					JsonElement value = entry.getValue();
+					if (value.isJsonObject()) {
+						JsonObject subObject = valu
+						for (Map.Entry<String, JsonElement> 
+							String subKey = subEntry.
+							JsonElement subValue = subEntry.getValue();
+							this.topicEdgeConfig = String.format(ControllerApiMqtt.TOPIC_EDGE_CON
+							this.publish(this.topicEdgeConfig,
+									1 /* QOS */, this.config.retainMessages()
+							
+							
+									
+									
+						 
+					/
+				t
+				break;
+				
+				
+				
 	/**
 	 * Publish a message to a topic.
 	 *
