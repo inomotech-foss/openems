@@ -1,9 +1,11 @@
+// @ts-strict-ignore
 import { AfterContentChecked, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { environment } from 'src/environments';
 
+import { AppService } from '../app.service';
 import { AuthenticateWithPasswordRequest } from '../shared/jsonrpc/request/authenticateWithPasswordRequest';
 import { Edge, Service, Utils, Websocket } from '../shared/shared';
 
@@ -17,6 +19,9 @@ export class LoginComponent implements OnInit, AfterContentChecked, OnDestroy {
   private stopOnDestroy: Subject<void> = new Subject<void>();
   private page = 0;
   protected formIsDisabled: boolean = false;
+
+  protected popoverActive: 'android' | 'iOS' | null = null;
+  protected readonly isApp: boolean = AppService.isApp;
 
   constructor(
     public service: Service,
@@ -54,7 +59,7 @@ export class LoginComponent implements OnInit, AfterContentChecked, OnDestroy {
         // Wait for Websocket
         if (this.websocket.status == 'waiting for credentials') {
           this.service.startSpinner('loginspinner');
-          let lang = this.route.snapshot.queryParamMap.get('lang') ?? null;
+          const lang = this.route.snapshot.queryParamMap.get('lang') ?? null;
           if (lang) {
             localStorage.DEMO_LANGUAGE = lang;
           }

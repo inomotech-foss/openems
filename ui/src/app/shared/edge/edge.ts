@@ -1,7 +1,8 @@
+// @ts-strict-ignore
 import { compareVersions } from 'compare-versions';
 import { BehaviorSubject, Subject } from 'rxjs';
-
 import { SumState } from 'src/app/index/shared/sumState';
+
 import { JsonrpcRequest, JsonrpcResponseSuccess } from '../jsonrpc/base';
 import { CurrentDataNotification } from '../jsonrpc/notification/currentDataNotification';
 import { EdgeConfigNotification } from '../jsonrpc/notification/edgeConfigNotification';
@@ -14,13 +15,22 @@ import { SubscribeChannelsRequest } from '../jsonrpc/request/subscribeChannelsRe
 import { SubscribeSystemLogRequest } from '../jsonrpc/request/subscribeSystemLogRequest';
 import { UpdateComponentConfigRequest } from '../jsonrpc/request/updateComponentConfigRequest';
 import { GetEdgeConfigResponse } from '../jsonrpc/response/getEdgeConfigResponse';
-import { ArrayUtils } from '../service/arrayutils';
+import { ArrayUtils } from '../utils/array/array.utils';
 import { Websocket } from '../service/websocket';
 import { ChannelAddress } from '../type/channeladdress';
 import { Role } from '../type/role';
 import { SystemLog } from '../type/systemlog';
 import { CurrentData } from './currentdata';
 import { EdgeConfig } from './edgeconfig';
+import { ComponentJsonApiRequest } from '../jsonrpc/request/componentJsonApiRequest';
+import { GetChannelRequest } from '../jsonrpc/request/getChannelRequest';
+import { GetChannelResponse } from '../jsonrpc/response/getChannelResponse';
+import { Channel, GetChannelsOfComponentResponse } from '../jsonrpc/response/getChannelsOfComponentResponse';
+import { GetChannelsOfComponentRequest } from '../jsonrpc/request/getChannelsOfComponentRequest';
+import { EdgePermission } from '../shared';
+import { filter, first } from 'rxjs/operators';
+import { GetPropertiesOfFactoryRequest } from '../jsonrpc/request/getPropertiesOfFactoryRequest';
+import { GetPropertiesOfFactoryResponse } from '../jsonrpc/response/getPropertiesOfFactoryResponse';
 
 export class Edge {
 
@@ -65,6 +75,88 @@ export class Edge {
   }
 
   /**
+   * Gets the first valid Config. If not available yet, it requests it via Websocket.
+   *
+   * @param websocket the Websocket connection
+   */
+  public getFirstValidConfig(websocket: Websocket): Promise<EdgeConfig> {
+    return this.getConfig(websocket)
+      .pipe(filter(config => config != null && config.isValid()),
+        first())
+      .toPromise();
+  }
+
+  /**
+   * Gets a channel either from {@link EdgeConfig edgeconfig} or requests it from the edge.
+   *
+   * @param websocket the websocket to send a request if the
+   *                  channel is not included in the edgeconfig
+   * @param channel   the address of the channel to get
+   * @returns a promise of the found channel
+   */
+  public async getChannel(websocket: Websocket, channel: ChannelAddress): Promise<Channel> {
+    if (EdgePermission.hasChannelsInEdgeConfig(this)) {
+      const config = await this.getFirstValidConfig(websocket);
+      const foundChannel = config.getChannel(channel);
+      if (!foundChannel) {
+        throw new Error("Channel not found: " + channel);
+      }
+      return { id: channel.channelId, ...foundChannel };
+    }
+
+    const response = await this.sendRequest<GetChannelResponse>(websocket, new ComponentJsonApiRequest({
+      componentId: '_componentManager',
+      payload: new GetChannelRequest({
+        componentId: channel.componentId,
+        channelId: channel.channelId,
+      }),
+    }));
+
+    return response.result.channel;
+  }
+
+  /**
+   * Gets all channels of the component with the provided component id.
+   *
+   * @param websocket   the websocket to send a request if the
+   *                    channels are not included in the edgeconfig
+   * @param componentId the id of the component
+   * @returns a promise with the reuslt channels
+   */
+  public async getChannels(websocket: Websocket, componentId: string): Promise<Channel[]> {
+    if (EdgePermission.hasChannelsInEdgeConfig(this)) {
+      const config = await this.getFirstValidConfig(websocket);
+      const component = config.components[componentId];
+      if (!component) {
+        throw new Error('Component not found');
+      }
+      return Object.entries(component.channels).reduce((p, c) => {
+        return [...p, { id: c[0], ...c[1] }];
+      }, []);
+    }
+
+    const response = await this.sendRequest<GetChannelsOfComponentResponse>(websocket, new ComponentJsonApiRequest({
+      componentId: '_componentManager',
+      payload: new GetChannelsOfComponentRequest({ componentId: componentId }),
+    }));
+
+    return response.result.channels;
+  }
+
+  public async getFactoryProperties(websocket: Websocket, factoryId: string): Promise<[EdgeConfig.Factory, EdgeConfig.FactoryProperty[]]> {
+    if (EdgePermission.hasReducedFactories(this)) {
+      const response = await this.sendRequest<GetPropertiesOfFactoryResponse>(websocket, new ComponentJsonApiRequest({
+        componentId: '_componentManager',
+        payload: new GetPropertiesOfFactoryRequest({ factoryId }),
+      }));
+      return [response.result.factory, response.result.properties];
+    }
+
+    const factory = (await this.getFirstValidConfig(websocket)).factories[factoryId];
+    return [factory, factory.properties];
+  }
+
+  /**
    * Called by Service, when this Edge is set as currentEdge.
    */
   public markAsCurrentEdge(websocket: Websocket): void {
@@ -86,9 +178,9 @@ export class Edge {
       this.isRefreshConfigBlocked = false;
     }, 1000);
 
-    let request = new GetEdgeConfigRequest();
+    const request = new GetEdgeConfigRequest();
     this.sendRequest(websocket, request).then(response => {
-      let edgeConfigResponse = response as GetEdgeConfigResponse;
+      const edgeConfigResponse = response as GetEdgeConfigResponse;
       this.config.next(new EdgeConfig(this, edgeConfigResponse.result));
     }).catch(reason => {
       console.warn("Unable to refresh config", reason);
@@ -131,6 +223,16 @@ export class Edge {
    */
   public unsubscribeChannels(websocket: Websocket, id: string): void {
     delete this.subscribedChannels[id];
+    this.sendSubscribeChannels(websocket);
+  }
+
+  /**
+   * Removes all Channels from subscription
+   *
+   * @param websocket the Websocket
+   */
+  public unsubscribeAllChannels(websocket: Websocket) {
+    this.subscribedChannels = {};
     this.sendSubscribeChannels(websocket);
   }
 
@@ -188,11 +290,11 @@ export class Edge {
         this.subscribeChannelsTimeout = null;
 
         // merge channels from currentDataSubscribes
-        let channels: ChannelAddress[] = [];
-        for (let componentId in this.subscribedChannels) {
-          channels.push.apply(channels, this.subscribedChannels[componentId]);
+        const channels: ChannelAddress[] = [];
+        for (const componentId in this.subscribedChannels) {
+          channels.push(...this.subscribedChannels[componentId]);
         }
-        let request = new SubscribeChannelsRequest(channels);
+        const request = new SubscribeChannelsRequest(channels);
         this.sendRequest(websocket, request).then(() => {
           this.subscribeChannelsSuccessful = true;
         }).catch(reason => {
@@ -233,7 +335,7 @@ export class Edge {
    * @param properties  the properties to be updated.
    */
   public createComponentConfig(ws: Websocket, factoryPid: string, properties: { name: string, value: any }[]): Promise<JsonrpcResponseSuccess> {
-    let request = new CreateComponentConfigRequest({ factoryPid: factoryPid, properties: properties });
+    const request = new CreateComponentConfigRequest({ factoryPid: factoryPid, properties: properties });
     return this.sendRequest(ws, request);
   }
 
@@ -245,7 +347,7 @@ export class Edge {
    * @param properties  the properties to be updated.
    */
   public updateComponentConfig(ws: Websocket, componentId: string, properties: { name: string, value: any }[]): Promise<JsonrpcResponseSuccess> {
-    let request = new UpdateComponentConfigRequest({ componentId: componentId, properties: properties });
+    const request = new UpdateComponentConfigRequest({ componentId: componentId, properties: properties });
     return this.sendRequest(ws, request);
   }
 
@@ -256,7 +358,7 @@ export class Edge {
    * @param componentId the OpenEMS Edge Component-ID
    */
   public deleteComponentConfig(ws: Websocket, componentId: string): Promise<JsonrpcResponseSuccess> {
-    let request = new DeleteComponentConfigRequest({ componentId: componentId });
+    const request = new DeleteComponentConfigRequest({ componentId: componentId });
     return this.sendRequest(ws, request);
   }
 
@@ -267,8 +369,8 @@ export class Edge {
    * @param request          the JSON-RPC Request
    * @param responseCallback the JSON-RPC Response callback
    */
-  public sendRequest(ws: Websocket, request: JsonrpcRequest): Promise<JsonrpcResponseSuccess> {
-    let wrap = new EdgeRpcRequest({ edgeId: this.id, payload: request });
+  public sendRequest<T = JsonrpcResponseSuccess>(ws: Websocket, request: JsonrpcRequest): Promise<T> {
+    const wrap = new EdgeRpcRequest({ edgeId: this.id, payload: request });
     return new Promise((resolve, reject) => {
       ws.sendRequest(wrap).then(response => {
         resolve(response['result']['payload']);

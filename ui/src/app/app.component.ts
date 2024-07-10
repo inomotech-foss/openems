@@ -1,15 +1,17 @@
+// @ts-strict-ignore
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Title } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { Meta, Title } from '@angular/platform-browser';
+import { NavigationEnd, Router } from '@angular/router';
 import { MenuController, ModalController, Platform, ToastController } from '@ionic/angular';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
-import { Meta } from '@angular/platform-browser';
 import { environment } from '../environments';
 import { GlobalRouteChangeHandler } from './shared/service/globalRouteChangeHandler';
 import { Service, UserPermission, Websocket } from './shared/shared';
 import { Language } from './shared/type/language';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { AppService } from './app.service';
 
 @Component({
   selector: 'app-root',
@@ -22,8 +24,11 @@ export class AppComponent implements OnInit, OnDestroy {
   public enableSideMenu: boolean;
   public isSystemLogEnabled: boolean = false;
   private ngUnsubscribe: Subject<void> = new Subject<void>();
+  private subscription: Subscription = new Subscription();
 
   protected isUserAllowedToSeeOverview: boolean = false;
+  protected isUserAllowedToSeeFooter: boolean = false;
+  protected isHistoryDetailView: boolean = false;
 
   constructor(
     private platform: Platform,
@@ -34,14 +39,28 @@ export class AppComponent implements OnInit, OnDestroy {
     public toastController: ToastController,
     public websocket: Websocket,
     private globalRouteChangeHandler: GlobalRouteChangeHandler,
-    private titleService: Title,
     private meta: Meta,
+    private appService: AppService,
+    private title: Title,
   ) {
     service.setLang(Language.getByKey(localStorage.LANGUAGE) ?? Language.getByBrowserLang(navigator.language));
 
-    this.service.metadata.pipe(filter(metadata => !!metadata)).subscribe(metadata => {
-      this.isUserAllowedToSeeOverview = UserPermission.isUserAllowedToSeeOverview(metadata.user);
-    });
+
+    this.subscription.add(
+      this.service.metadata.pipe(filter(metadata => !!metadata)).subscribe(metadata => {
+        this.isUserAllowedToSeeOverview = UserPermission.isUserAllowedToSeeOverview(metadata.user);
+        this.isUserAllowedToSeeFooter = UserPermission.isUserAllowedToSeeFooter(metadata.user);
+      }));
+
+    this.subscription.add(
+      this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe((e: NavigationEnd) => {
+        // Hide footer for history detail views
+        const segments = e.url.split('/');
+        this.isHistoryDetailView = segments.slice(0, -1).includes('history');
+      }));
+
+    this.appService.listen();
+    SplashScreen.hide();
   }
 
   ngOnInit() {
@@ -51,7 +70,6 @@ export class AppComponent implements OnInit, OnDestroy {
       this.environment.debugMode = JSON.parse(localStorage.getItem("DEBUGMODE"));
     }
 
-    this.titleService.setTitle(environment.edgeShortName);
     this.service.notificationEvent.pipe(takeUntil(this.ngUnsubscribe)).subscribe(async notification => {
       const toast = await this.toastController.create({
         message: notification.message,
@@ -83,6 +101,8 @@ export class AppComponent implements OnInit, OnDestroy {
         this.checkSmartphoneResolution(false);
       });
     });
+
+    this.title.setTitle(environment.edgeShortName);
   }
 
   private checkSmartphoneResolution(init: boolean): void {
@@ -108,5 +128,6 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
+    this.subscription.unsubscribe();
   }
 }
