@@ -2,7 +2,6 @@ package io.openems.edge.controller.api.mqtt;
 
 import static io.openems.common.utils.ThreadPoolUtils.shutdownAndAwaitTermination;
 
-import java.io.ObjectInputFilter.Config;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -95,7 +94,7 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 		this.config = config;
 
 		// Publish MQTT messages under the topic "edge/edge0/..."
-		this.topicPrefix = String.format(ControllerApiMqtt.TOPIC_CHANNEL_PREFIX, config.clientId());
+		this.topicPrefix = createTopicPrefix(config);
 
 		// check for optional prefix and prepend it to the topic prefix
 		String optPrefix = config.optTopicPrefix();
