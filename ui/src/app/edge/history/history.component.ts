@@ -1,6 +1,8 @@
+// @ts-strict-ignore
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { AppService } from 'src/app/app.service';
 import { HeaderComponent } from 'src/app/shared/header/header.component';
 import { JsonrpcResponseError } from 'src/app/shared/jsonrpc/base';
 import { Edge, EdgeConfig, Service, Widgets } from 'src/app/shared/shared';
@@ -32,6 +34,7 @@ export class HistoryComponent implements OnInit {
   // public channelthresholdComponents: string[] = [];
 
   public config: EdgeConfig = null;
+  protected handleRefresh: () => void = () => AppService.handleRefresh();
 
   constructor(
     public service: Service,
@@ -73,7 +76,7 @@ export class HistoryComponent implements OnInit {
   }
 
   updateOnWindowResize() {
-    let ref = /* fix proportions */ Math.min(window.innerHeight - 150,
+    const ref = /* fix proportions */ Math.min(window.innerHeight - 150,
       /* handle grid breakpoints */(window.innerWidth < 768 ? window.innerWidth - 150 : window.innerWidth - 400));
     this.socChartHeight =
       /* minimum size */ Math.max(150,

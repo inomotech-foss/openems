@@ -1,3 +1,4 @@
+// @ts-strict-ignore
 import { ChartOptionsPopoverComponent } from './popover/popover.component';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { PopoverController } from '@ionic/angular';
@@ -10,8 +11,8 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class ChartOptionsComponent {
 
-    @Input() public showPhases: boolean | null;
-    @Input() public showTotal: boolean | null;
+    @Input({ required: true }) public showPhases!: boolean | null;
+    @Input({ required: true }) public showTotal!: boolean | null;
     @Output() public setShowPhases = new EventEmitter<boolean>();
     @Output() public setShowTotal = new EventEmitter<boolean>();
 
@@ -22,7 +23,7 @@ export class ChartOptionsComponent {
     ) { }
 
     async presentPopover(ev: any) {
-        let componentProps = {};
+        const componentProps = {};
         if (this.showPhases !== null) {
             componentProps['showPhases'] = this.showPhases;
         }

@@ -1,3 +1,4 @@
+// @ts-strict-ignore
 import { ChangeDetectorRef, Directive, Inject, Input, OnChanges, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
@@ -16,13 +17,13 @@ import { Filter } from "../shared/filter";
 export abstract class AbstractModalLine implements OnInit, OnDestroy, OnChanges {
 
     /** FormGroup */
-    @Input() public formGroup: FormGroup;
+    @Input({ required: true }) public formGroup!: FormGroup;
 
     /** component */
     @Input() public component: EdgeConfig.Component = null;
 
     /** FormGroup ControlName */
-    @Input() public controlName: string;
+    @Input({ required: true }) public controlName!: string;
 
     /**
     * Use `converter` to convert/map a CurrentData value to another value, e.g. an Enum number to a text.
@@ -50,9 +51,9 @@ export abstract class AbstractModalLine implements OnInit, OnDestroy, OnChanges 
         } else {
             this._name = value;
         }
-    };
+    }
 
-    @Input() public value: number | string;
+    @Input({ required: true }) public value!: number | string;
     @Input() public roleIsAtLeast?: Role = Role.GUEST;
     protected show: boolean = true;
 
@@ -113,14 +114,14 @@ export abstract class AbstractModalLine implements OnInit, OnDestroy, OnChanges 
                 this.config = config;
 
                 // get the channel addresses that should be subscribed
-                let channelAddresses: ChannelAddress[] = [...this.getChannelAddresses()];
+                const channelAddresses: ChannelAddress[] = [...this.getChannelAddresses()];
 
                 if (typeof this.name == 'object') {
                     channelAddresses.push(this.name.channel);
                 }
 
-                let channelIds = this.getChannelIds();
-                for (let channelId of channelIds) {
+                const channelIds = this.getChannelIds();
+                for (const channelId of channelIds) {
                     channelAddresses.push(new ChannelAddress(this.component.id, channelId));
                 }
                 if (channelAddresses.length != 0) {
@@ -129,9 +130,9 @@ export abstract class AbstractModalLine implements OnInit, OnDestroy, OnChanges 
 
                 // call onCurrentData() with latest data
                 edge.currentData.pipe(takeUntil(this.stopOnDestroy)).subscribe(currentData => {
-                    let allComponents = {};
-                    for (let channelAddress of channelAddresses) {
-                        let ca = channelAddress.toString();
+                    const allComponents = {};
+                    for (const channelAddress of channelAddresses) {
+                        const ca = channelAddress.toString();
                         allComponents[ca] = currentData.channel[ca];
                     }
                     this.onCurrentData({ allComponents: allComponents });
