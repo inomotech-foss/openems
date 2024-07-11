@@ -85,7 +85,23 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 
 	private final ChargeSessionStamp sessionEnd = new ChargeSessionStamp();
 
-	private boolean transactionAcitve = false;
+	public final class CurrentLimitResult {
+		private final boolean transactionLimitSuccess;
+		private final boolean defaultLimitSuccess;
+
+		public CurrentLimitResult(boolean transactionLimitSuccess, boolean defaultLimitSuccess) {
+			this.transactionLimitSuccess = transactionLimitSuccess;
+			this.defaultLimitSuccess = defaultLimitSuccess;
+		}
+
+		public boolean transactionLimitSuccess() {
+			return this.transactionLimitSuccess;
+		}
+
+		public boolean defaultLimitSuccess() {
+			return this.defaultLimitSuccess;
+		}
+	}
 
 	protected AbstractManagedOcppEvcsComponent(OcppProfileType[] profileTypes,
 			io.openems.edge.common.channel.ChannelId[] firstInitialChannelIds,
@@ -322,14 +338,6 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		}
 	}
 
-	public void setTransactionActive(boolean transactionActive) {
-		this.transactionAcitve = transactionActive;
-	}
-
-	public boolean getTransactionActive() {
-		return this.transactionAcitve;
-	}
-
 	public ChargingProperty getLastChargingProperty() {
 		return this.lastChargingProperty;
 	}
@@ -469,7 +477,7 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		return this.setPower(power);
 	}
 
-	public boolean applyChargeCurrentLimit(int connectorId, int current) throws OpenemsException {
+	public CurrentLimitResult applyChargeCurrentLimit(int connectorId, int current) throws OpenemsException {
 		return this.setCurrent(connectorId, current);
 	}
 
@@ -526,9 +534,9 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		return this.applyLimit(this.getStandardRequests().setChargePowerLimit(power));
 	}
 
-	private boolean setCurrent(int connectorId, int current) {
-		this.applyLimit(this.getStandardRequests().setTxProfile(connectorId, current));
-		return this.applyLimit(this.getStandardRequests().setTxDefaultProfile(connectorId, current));
+	private CurrentLimitResult setCurrent(int connectorId, int current) {
+		return new CurrentLimitResult(this.applyLimit(this.getStandardRequests().setTxProfile(connectorId, current)),
+				this.applyLimit(this.getStandardRequests().setTxDefaultProfile(connectorId, current)));
 	}
 
 }

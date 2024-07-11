@@ -7,6 +7,7 @@ import com.google.gson.JsonPrimitive;
 
 import io.openems.common.jsonrpc.base.JsonrpcResponseSuccess;
 import io.openems.common.utils.JsonUtils;
+import io.openems.edge.evcs.ocpp.common.AbstractManagedOcppEvcsComponent.CurrentLimitResult;
 
 /**
  * Represents a JSON-RPC Response for 'applyChargeCurrentLimit'.
@@ -25,21 +26,23 @@ import io.openems.common.utils.JsonUtils;
  */
 public class ApplyChargeCurrentLimitResponse extends JsonrpcResponseSuccess {
 
-	private final JsonPrimitive appliedSuccessfully;
+	private final JsonPrimitive transactionAppliedSuccessfully;
+	private final JsonPrimitive defaultAppliedSuccessfully;
 
-	public ApplyChargeCurrentLimitResponse(boolean success) {
+	public ApplyChargeCurrentLimitResponse(CurrentLimitResult success) {
 		this(UUID.randomUUID(), success);
 	}
 
-	public ApplyChargeCurrentLimitResponse(UUID id, boolean success) {
+	public ApplyChargeCurrentLimitResponse(UUID id, CurrentLimitResult success) {
 		super(id);
-		this.appliedSuccessfully = new JsonPrimitive(success);
+		this.transactionAppliedSuccessfully = new JsonPrimitive(success.transactionLimitSuccess());
+		this.defaultAppliedSuccessfully = new JsonPrimitive(success.defaultLimitSuccess());
 	}
 
 	@Override
 	public JsonObject getResult() {
 		return JsonUtils.buildJsonObject() //
-				.add("appliedSuccessfully", this.appliedSuccessfully) //
+				.add("transactionAppliedSuccessfully", this.transactionAppliedSuccessfully).add("defaultAppliedSuccessfully", this.defaultAppliedSuccessfully) //
 				.build();
 	}
 
