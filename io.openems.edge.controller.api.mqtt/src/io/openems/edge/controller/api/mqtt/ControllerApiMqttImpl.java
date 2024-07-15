@@ -87,16 +87,16 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 				Controller.ChannelId.values(), //
 				ControllerApiMqtt.ChannelId.values() //
 		);
+		
 	}
 
 	@Activate
 	private void activate(ComponentContext context, Config config) throws Exception {
 		this.config = config;
-
 		// Publish MQTT messages under the topic "edge/edge0/..."
 		this.topicPrefix = createTopicPrefix(config);
-
 		super.activate(context, config.id(), config.alias(), config.enabled());
+
 		this.scheduleReconnect();
 	}
 
@@ -230,7 +230,7 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 	}
 
 	private synchronized void scheduleReconnect() {
-		if (this.reconnectFuture != null && this.reconnectFuture.isDone()) {
+		if (this.reconnectFuture != null && !this.reconnectFuture.isDone()) {
 			this.reconnectFuture.cancel(false);
 		}
 
