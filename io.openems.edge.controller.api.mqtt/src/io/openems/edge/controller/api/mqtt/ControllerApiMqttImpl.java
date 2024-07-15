@@ -230,7 +230,7 @@ public class ControllerApiMqttImpl extends AbstractOpenemsComponent
 	}
 
 	private synchronized void scheduleReconnect() {
-		if (this.reconnectFuture != null && !this.reconnectFuture.isDone()) {
+		if (this.reconnectFuture != null && this.reconnectFuture.isDone()) {
 			this.reconnectFuture.cancel(false);
 		}
 
