@@ -151,8 +151,6 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 			@Override
 			public Request setChargeCurrentLimit(int chargeCurrent) {
-				ChargingSchedulePeriod schedulePeriod[] = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
-				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
 
 				ChargingProfilePurposeType purpose;
 				int chargingProfileId;
@@ -164,6 +162,8 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 				chargingProfileId = 1;
 				stackLevel = 4;
 
+				ChargingSchedulePeriod[] schedulePeriod = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
+				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
 				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose,
 						ChargingProfileKindType.Absolute, schedule);
 
@@ -172,11 +172,11 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
 			@Override
 			public Request setTxProfile(int connector, int chargeCurrent) {
-				if (connector != getConfiguredConnectorId()) {
+				if (connector != EvcsOcppAlfenEveSingleImpl.this.getConfiguredConnectorId()) {
 					return null;
 				}
 
-				ChargingSchedulePeriod schedulePeriod[] = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
+				ChargingSchedulePeriod[] schedulePeriod = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
 				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
 				ChargingProfilePurposeType purpose = ChargingProfilePurposeType.TxProfile;
 				int chargingProfileId = 1;
@@ -185,12 +185,12 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose,
 						ChargingProfileKindType.Absolute, schedule);
 
-				return new SetChargingProfileRequest(getConfiguredConnectorId(), profile);
+				return new SetChargingProfileRequest(EvcsOcppAlfenEveSingleImpl.this.getConfiguredConnectorId(), profile);
 			}
 
 			@Override
 			public Request setTxDefaultProfile(int connector, int chargeCurrent) {
-				ChargingSchedulePeriod schedulePeriod[] = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
+				ChargingSchedulePeriod[] schedulePeriod = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
 				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
 				ChargingProfilePurposeType purpose = ChargingProfilePurposeType.TxDefaultProfile;
 				int chargingProfileId = 1;

@@ -42,7 +42,8 @@ public class ApplyChargeCurrentLimitResponse extends JsonrpcResponseSuccess {
 	@Override
 	public JsonObject getResult() {
 		return JsonUtils.buildJsonObject() //
-				.add("transactionAppliedSuccessfully", this.transactionAppliedSuccessfully).add("defaultAppliedSuccessfully", this.defaultAppliedSuccessfully) //
+				.add("transactionAppliedSuccessfully", this.transactionAppliedSuccessfully)
+				.add("defaultAppliedSuccessfully", this.defaultAppliedSuccessfully) //
 				.build();
 	}
 

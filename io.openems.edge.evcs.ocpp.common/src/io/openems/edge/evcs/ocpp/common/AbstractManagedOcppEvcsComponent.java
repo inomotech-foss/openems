@@ -94,10 +94,20 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 			this.defaultLimitSuccess = defaultLimitSuccess;
 		}
 
+		/**
+		 * Setting the transaction limit was successful or not.
+		 * 
+		 * @return result of setting the limit
+		 */
 		public boolean transactionLimitSuccess() {
 			return this.transactionLimitSuccess;
 		}
 
+		/**
+		 * Setting the default limit was successful or not.
+		 * 
+		 * @return result of setting the limit
+		 */
 		public boolean defaultLimitSuccess() {
 			return this.defaultLimitSuccess;
 		}
@@ -439,7 +449,7 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		AtomicBoolean success = new AtomicBoolean(false);
 
 		try {
-			ChargingSchedulePeriod schedulePeriod[] = { new ChargingSchedulePeriod(0, currentLimit) };
+			ChargingSchedulePeriod[] schedulePeriod = { new ChargingSchedulePeriod(0, currentLimit) };
 			ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
 
 			var profile = new ChargingProfile(1, 0, ChargingProfilePurposeType.ChargePointMaxProfile,
@@ -477,6 +487,14 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		return this.setPower(power);
 	}
 
+	/**
+	 * Set chagrge current limit for transaction and default profile.
+	 * 
+	 * @param connectorId ID of the connector to which the limits should be applied to
+	 * @param current the current limit
+	 * @return the result of the operation
+	 * @throws OpenemsException on error
+	 */
 	public CurrentLimitResult applyChargeCurrentLimit(int connectorId, int current) throws OpenemsException {
 		return this.setCurrent(connectorId, current);
 	}
