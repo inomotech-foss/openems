@@ -124,8 +124,12 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 						val = this.fromHexToDezString(val);
 					}
 
-					var measurand = OcppInformations
-							.valueOf("CORE_METER_VALUES_" + measurandString.replace(".", "_").toUpperCase());
+					if (phases != null && !phases.isBlank()) {
+						measurandString += "." + phases;
+					}
+
+					var measurand = OcppInformations.valueOf(
+							"CORE_METER_VALUES_" + measurandString.replace(".", "_").replace("-", "_").toUpperCase());
 
 					this.logDebug(measurandString + ": " + val + " " + unitString + " Phases: " + phases);
 
@@ -135,6 +139,9 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 						switch (measurand) {
 						case CORE_METER_VALUES_CURRENT_EXPORT:
 						case CORE_METER_VALUES_CURRENT_IMPORT:
+						case CORE_METER_VALUES_CURRENT_IMPORT_L1:
+						case CORE_METER_VALUES_CURRENT_IMPORT_L2:
+						case CORE_METER_VALUES_CURRENT_IMPORT_L3:
 						case CORE_METER_VALUES_CURRENT_OFFERED:
 							correctValue = (int) Math.round(Double.valueOf(val) * 1000);
 							break;
@@ -149,6 +156,9 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 							break;
 
 						case CORE_METER_VALUES_ENERGY_ACTIVE_IMPORT_REGISTER:
+						case CORE_METER_VALUES_ENERGY_ACTIVE_IMPORT_REGISTER_L1:
+						case CORE_METER_VALUES_ENERGY_ACTIVE_IMPORT_REGISTER_L2:
+						case CORE_METER_VALUES_ENERGY_ACTIVE_IMPORT_REGISTER_L3:
 							if (unit.equals(Unit.KWH)) {
 								val = this.multipliedByThousand(val);
 							}
@@ -185,6 +195,9 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 
 						case CORE_METER_VALUES_ENERGY_REACTIVE_EXPORT_REGISTER:
 						case CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER:
+						case CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER_L1:
+						case CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER_L2:
+						case CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER_L3:
 						case CORE_METER_VALUES_ENERGY_REACTIVE_EXPORT_INTERVAL:
 						case CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_INTERVAL:
 							if (unit.equals(Unit.KVARH)) {
@@ -195,6 +208,9 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 
 						case CORE_METER_VALUES_POWER_ACTIVE_EXPORT:
 						case CORE_METER_VALUES_POWER_ACTIVE_IMPORT:
+						case CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L1:
+						case CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L2:
+						case CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L3:
 						case CORE_METER_VALUES_POWER_OFFERED:
 							if (unit.equals(Unit.KW)) {
 								val = this.multipliedByThousand(val);
@@ -232,8 +248,14 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 							break;
 
 						case CORE_METER_VALUES_VOLTAGE:
+						case CORE_METER_VALUES_VOLTAGE_L1_N:
+						case CORE_METER_VALUES_VOLTAGE_L2_N:
+						case CORE_METER_VALUES_VOLTAGE_L3_N:
+						case CORE_METER_VALUES_VOLTAGE_L1_L2:
+						case CORE_METER_VALUES_VOLTAGE_L2_L3:
+						case CORE_METER_VALUES_VOLTAGE_L3_L1:
 						case CORE_METER_VALUES_SOC:
-							correctValue = (int) Math.round(Double.parseDouble(val));
+							correctValue = Float.parseFloat(val);
 							break;
 
 						case CORE_METER_VALUES_RPM:
