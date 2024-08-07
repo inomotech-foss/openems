@@ -1,4 +1,4 @@
-package io.openems.edge.evcs.ocpp.abl;
+package io.openems.edge.evcs.ocpp.alfen;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,18 +22,22 @@ import org.osgi.service.metatype.annotations.Designate;
 
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
-import eu.chargetime.ocpp.model.core.DataTransferRequest;
-import eu.chargetime.ocpp.model.remotetrigger.TriggerMessageRequest;
-import eu.chargetime.ocpp.model.remotetrigger.TriggerMessageRequestType;
+import eu.chargetime.ocpp.model.core.ChargingProfile;
+import eu.chargetime.ocpp.model.core.ChargingProfileKindType;
+import eu.chargetime.ocpp.model.core.ChargingProfilePurposeType;
+import eu.chargetime.ocpp.model.core.ChargingRateUnitType;
+import eu.chargetime.ocpp.model.core.ChargingSchedule;
+import eu.chargetime.ocpp.model.core.ChargingSchedulePeriod;
+import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
-import io.openems.edge.evcs.api.ChargingType;
+import io.openems.edge.common.jsonapi.JsonApi;
+import io.openems.edge.common.jsonapi.JsonApiBuilder;
 import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.api.EvcsPower;
 import io.openems.edge.evcs.api.ManagedEvcs;
 import io.openems.edge.evcs.api.MeasuringEvcs;
-import io.openems.edge.evcs.api.Phases;
 import io.openems.edge.evcs.ocpp.common.AbstractManagedOcppEvcsComponent;
 import io.openems.edge.evcs.ocpp.common.OcppInformations;
 import io.openems.edge.evcs.ocpp.common.OcppProfileType;
@@ -42,7 +46,7 @@ import io.openems.edge.timedata.api.Timedata;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(//
-		name = "Evcs.Ocpp.Abl", //
+		name = "Evcs.Ocpp.Alfen.EveSingle", //
 		immediate = true, //
 		configurationPolicy = ConfigurationPolicy.REQUIRE //
 )
@@ -50,22 +54,18 @@ import io.openems.edge.timedata.api.Timedata;
 		EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE, //
 		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE //
 })
-public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
-		implements EvcsOcppAbl, Evcs, MeasuringEvcs, ManagedEvcs, OpenemsComponent, EventHandler {
+public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
+		implements EvcsOcppAlfenEveSingle, Evcs, MeasuringEvcs, ManagedEvcs, OpenemsComponent, EventHandler, JsonApi {
 
 	// Default value for the hardware limit
 	private static final Integer DEFAULT_HARDWARE_LIMIT = 22080;
 
-	// Profiles that a ABL is supporting
+	// Profiles that a Alfen Eve Single is supporting
 	private static final OcppProfileType[] PROFILE_TYPES = { //
 			OcppProfileType.CORE //
 	};
 
-	/*
-	 * Values that a ABL is supporting Info: It is not sure that the ABL is using
-	 * all of them, but in particular it is not supporting the information of the
-	 * current power.
-	 */
+	// Values that an Alfen Eve Single is supporting
 	private static final HashSet<OcppInformations> MEASUREMENTS = new HashSet<>(//
 			Arrays.asList(//
 					OcppInformations.values()) //
@@ -82,7 +82,7 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 	@Reference
 	private ComponentManager componentManager;
 
-	public EvcsOcppAblImpl() {
+	public EvcsOcppAlfenEveSingleImpl() {
 		super(//
 				PROFILE_TYPES, //
 				OpenemsComponent.ChannelId.values(), //
@@ -90,7 +90,7 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 				AbstractManagedOcppEvcsComponent.ChannelId.values(), //
 				ManagedEvcs.ChannelId.values(), //
 				MeasuringEvcs.ChannelId.values(), //
-				EvcsOcppAbl.ChannelId.values() //
+				EvcsOcppAlfenEveSingle.ChannelId.values() //
 		);
 	}
 
@@ -98,9 +98,6 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 	private void activate(ComponentContext context, Config config) {
 		this.config = config;
 		super.activate(context, config.id(), config.alias(), config.enabled());
-
-		this._setChargingType(ChargingType.AC);
-		this._setPowerPrecision(230);
 	}
 
 	@Deactivate
@@ -115,7 +112,7 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 
 	@Override
 	public String getConfiguredOcppId() {
-		return this.config.ocpp_id();
+		return this.config.ocppId();
 	}
 
 	@Override
@@ -136,41 +133,67 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 
 			@Override
 			public Request setChargePowerLimit(int chargePower) {
-				var request = new DataTransferRequest("ABL");
 				var phases = evcs.getPhasesAsInt();
 				var target = Math.round(chargePower / phases / 230.0);
 				var maxCurrent = evcs.getMaximumHardwarePower().orElse(DEFAULT_HARDWARE_LIMIT) / phases / 230;
 
 				target = target > maxCurrent ? maxCurrent : target;
-				request.setMessageId("SetLimit");
-				request.setData(
-						"logicalid=" + EvcsOcppAblImpl.this.config.limitId() + ";value=" + String.valueOf(target));
-				return request;
+
+				return new ChangeConfigurationRequest("Station-MaxCurrent", String.valueOf(target));
+
 			}
 
 			@Override
 			public Request setChargeCurrentLimit(int chargeCurrent) {
-				var request = new DataTransferRequest("ABL");
-				var phases = evcs.getPhasesAsInt();
-				var target = Math.round(chargeCurrent);
-				var maxCurrent = evcs.getMaximumHardwarePower().orElse(DEFAULT_HARDWARE_LIMIT) / phases / 230;
 
-				target = target > maxCurrent ? maxCurrent : target;
-				request.setMessageId("SetLimit");
-				request.setData(
-						"logicalid=" + EvcsOcppAblImpl.this.config.limitId() + ";value=" + String.valueOf(target));
-				return request;
+				ChargingProfilePurposeType purpose;
+				int chargingProfileId;
+				int stackLevel;
 
+				// These parameter values are for testing the optimizer on single connector
+				// evcs.
+				purpose = ChargingProfilePurposeType.ChargePointMaxProfile;
+				chargingProfileId = 1;
+				stackLevel = 4;
+
+				ChargingSchedulePeriod[] schedulePeriod = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
+				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
+				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose,
+						ChargingProfileKindType.Absolute, schedule);
+
+				return new SetChargingProfileRequest(/* getConfiguredConnectorId() */0, profile);
 			}
 
 			@Override
-			public Request setTxProfile(int connectorId, int chargeCurrent) {
-				return null;
+			public Request setTxProfile(int connector, int chargeCurrent) {
+				if (connector != EvcsOcppAlfenEveSingleImpl.this.getConfiguredConnectorId()) {
+					return null;
+				}
+
+				ChargingSchedulePeriod[] schedulePeriod = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
+				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
+				ChargingProfilePurposeType purpose = ChargingProfilePurposeType.TxProfile;
+				int chargingProfileId = 1;
+				int stackLevel = 5;
+
+				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose,
+						ChargingProfileKindType.Absolute, schedule);
+
+				return new SetChargingProfileRequest(EvcsOcppAlfenEveSingleImpl.this.getConfiguredConnectorId(), profile);
 			}
 
 			@Override
-			public Request setTxDefaultProfile(int connectorId, int chargeCurrent) {
-				return null;
+			public Request setTxDefaultProfile(int connector, int chargeCurrent) {
+				ChargingSchedulePeriod[] schedulePeriod = { new ChargingSchedulePeriod(0, (double) chargeCurrent) };
+				ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
+				ChargingProfilePurposeType purpose = ChargingProfilePurposeType.TxDefaultProfile;
+				int chargingProfileId = 1;
+				int stackLevel = 5;
+
+				var profile = new ChargingProfile(chargingProfileId, stackLevel, purpose,
+						ChargingProfileKindType.Absolute, schedule);
+
+				return new SetChargingProfileRequest(connector, profile);
 			}
 
 			@Override
@@ -189,8 +212,18 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 		requests.add(setMeterValueSampleInterval);
 
 		var setMeterValueSampledData = new ChangeConfigurationRequest("MeterValuesSampledData",
-				"Energy.Active.Import.Register,Current.Import,Voltage,Power.Active.Import,Temperature");
+				"Current.Import,Voltage,Power.Active.Import,Current.Offered,Energy.Active.Import.Register");
 		requests.add(setMeterValueSampledData);
+
+		var setClockAlignedDataInterval = new ChangeConfigurationRequest("ClockAlignedDataInterval", "10");
+		requests.add(setClockAlignedDataInterval);
+
+		var setMeterValuesAlignedData = new ChangeConfigurationRequest("MeterValuesAlignedData",
+				"Energy.Active.Import.Register,Current.Import,Power.Active.Import,Voltage,Current.Offered");
+		requests.add(setMeterValuesAlignedData);
+
+		var setSendStationStatus = new ChangeConfigurationRequest("SendStationStatus", "True");
+		requests.add(setSendStationStatus);
 
 		return requests;
 	}
@@ -198,18 +231,6 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 	@Override
 	public List<Request> getRequiredRequestsDuringConnection() {
 		List<Request> requests = new ArrayList<>();
-
-		var requestMeterValues = new TriggerMessageRequest(TriggerMessageRequestType.MeterValues);
-		requestMeterValues.setConnectorId(this.getConfiguredConnectorId());
-		requests.add(requestMeterValues);
-
-		var requestStatus = new TriggerMessageRequest(TriggerMessageRequestType.StatusNotification);
-		requestStatus.setConnectorId(this.getConfiguredConnectorId());
-		requests.add(requestStatus);
-
-		var setMeterValueSampledData = new ChangeConfigurationRequest("MeterValuesSampledData",
-				"Energy.Active.Import.Register,Current.Import,Voltage,Power.Active.Import,Temperature");
-		requests.add(setMeterValueSampledData);
 
 		return requests;
 	}
@@ -232,16 +253,17 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 
 	@Override
 	public int getConfiguredMinimumHardwarePower() {
-		return Math.round(this.config.minHwCurrent() / 1000f) * DEFAULT_VOLTAGE * Phases.THREE_PHASE.getValue();
+		return this.config.minHwPower();
 	}
 
 	@Override
 	public int getConfiguredMaximumHardwarePower() {
-		return Math.round(this.config.maxHwCurrent() / 1000f) * DEFAULT_VOLTAGE * Phases.THREE_PHASE.getValue();
+		return this.config.maxHwPower();
 	}
 
 	@Override
 	public int getMinimumTimeTillChargingLimitTaken() {
+		// TODO check for real world default value
 		return 30;
 	}
 
@@ -249,4 +271,36 @@ public class EvcsOcppAblImpl extends AbstractManagedOcppEvcsComponent
 	public Timedata getTimedata() {
 		return this.timedata;
 	}
+
+    @Override
+    public void buildJsonApiRoutes(JsonApiBuilder builder) {
+        builder.rpc(
+            ApplyChargePowerLimitRequest.METHOD,
+            call -> {
+                ApplyChargePowerLimitRequest request = ApplyChargePowerLimitRequest.from(call.getRequest());
+                var chargePowerLimit = request.getChargePowerLimit();
+
+                boolean success = this.applyChargePowerLimit(chargePowerLimit);
+
+                var response = new ApplyChargePowerLimitResponse(request.getId(), success);
+
+                call.setResponse(response);
+            }
+        );
+
+        builder.rpc(
+            ApplyChargeCurrentLimitRequest.METHOD,
+            call -> {
+                ApplyChargeCurrentLimitRequest request = ApplyChargeCurrentLimitRequest.from(call.getRequest());
+                var chargeCurrentLimit = request.getChargeCurrentLimit();
+                var connectorId = request.getConnectorId();
+
+                CurrentLimitResult success = this.applyChargeCurrentLimit(connectorId, chargeCurrentLimit);
+
+                var response = new ApplyChargeCurrentLimitResponse(request.getId(), success);
+
+                call.setResponse(response);
+            }
+        );
+    }
 }
