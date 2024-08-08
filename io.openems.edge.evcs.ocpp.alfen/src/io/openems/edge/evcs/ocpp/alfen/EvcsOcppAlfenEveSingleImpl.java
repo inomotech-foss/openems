@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -30,16 +29,11 @@ import eu.chargetime.ocpp.model.core.ChargingRateUnitType;
 import eu.chargetime.ocpp.model.core.ChargingSchedule;
 import eu.chargetime.ocpp.model.core.ChargingSchedulePeriod;
 import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
-import io.openems.common.exceptions.OpenemsError;
-import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
-import io.openems.common.exceptions.OpenemsException;
-import io.openems.common.jsonrpc.base.JsonrpcRequest;
-import io.openems.common.jsonrpc.base.JsonrpcResponseSuccess;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
 import io.openems.edge.common.jsonapi.JsonApi;
-import io.openems.edge.common.user.User;
+import io.openems.edge.common.jsonapi.JsonApiBuilder;
 import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.api.EvcsPower;
 import io.openems.edge.evcs.api.ManagedEvcs;
@@ -278,40 +272,35 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 		return this.timedata;
 	}
 
-	@Override
-	public CompletableFuture<? extends JsonrpcResponseSuccess> handleJsonrpcRequest(User user, JsonrpcRequest request)
-			throws OpenemsNamedException {
+    @Override
+    public void buildJsonApiRoutes(JsonApiBuilder builder) {
+        builder.rpc(
+            ApplyChargePowerLimitRequest.METHOD,
+            call -> {
+                ApplyChargePowerLimitRequest request = ApplyChargePowerLimitRequest.from(call.getRequest());
+                var chargePowerLimit = request.getChargePowerLimit();
 
-		switch (request.getMethod()) {
-		case ApplyChargePowerLimitRequest.METHOD:
-			return this.handleApplyChargePowerLimitRequest(user, ApplyChargePowerLimitRequest.from(request));
-		case ApplyChargeCurrentLimitRequest.METHOD:
-			return this.handleApplyChargeCurrentLimitRequest(user, ApplyChargeCurrentLimitRequest.from(request));
-		default:
-			throw new OpenemsNamedException(OpenemsError.JSONRPC_UNHANDLED_METHOD, request.getMethod());
-		}
-	}
+                boolean success = this.applyChargePowerLimit(chargePowerLimit);
 
-	private CompletableFuture<JsonrpcResponseSuccess> handleApplyChargePowerLimitRequest(User user,
-			ApplyChargePowerLimitRequest request) throws OpenemsException {
-		var chargePowerLimit = request.getChargePowerLimit();
+                var response = new ApplyChargePowerLimitResponse(request.getId(), success);
 
-		boolean success = this.applyChargePowerLimit(chargePowerLimit);
+                call.setResponse(response);
+            }
+        );
 
-		var response = new ApplyChargePowerLimitResponse(request.getId(), success);
+        builder.rpc(
+            ApplyChargeCurrentLimitRequest.METHOD,
+            call -> {
+                ApplyChargeCurrentLimitRequest request = ApplyChargeCurrentLimitRequest.from(call.getRequest());
+                var chargeCurrentLimit = request.getChargeCurrentLimit();
+                var connectorId = request.getConnectorId();
 
-		return CompletableFuture.completedFuture(response);
-	}
+                CurrentLimitResult success = this.applyChargeCurrentLimit(connectorId, chargeCurrentLimit);
 
-	private CompletableFuture<JsonrpcResponseSuccess> handleApplyChargeCurrentLimitRequest(User user,
-			ApplyChargeCurrentLimitRequest request) throws OpenemsException {
-		var chargeCurrentLimit = request.getChargeCurrentLimit();
-		var connectorId = request.getConnectorId();
+                var response = new ApplyChargeCurrentLimitResponse(request.getId(), success);
 
-		CurrentLimitResult success = this.applyChargeCurrentLimit(connectorId, chargeCurrentLimit);
-
-		var response = new ApplyChargeCurrentLimitResponse(request.getId(), success);
-
-		return CompletableFuture.completedFuture(response);
-	}
+                call.setResponse(response);
+            }
+        );
+    }
 }
