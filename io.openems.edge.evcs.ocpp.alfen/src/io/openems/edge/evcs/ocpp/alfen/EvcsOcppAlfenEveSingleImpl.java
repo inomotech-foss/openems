@@ -32,8 +32,9 @@ import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
-import io.openems.edge.common.jsonapi.JsonApi;
+import io.openems.edge.common.jsonapi.ComponentJsonApi;
 import io.openems.edge.common.jsonapi.JsonApiBuilder;
+import io.openems.edge.common.jsonapi.JsonrpcEndpointGuard;
 import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.api.EvcsPower;
 import io.openems.edge.evcs.api.ManagedEvcs;
@@ -55,7 +56,7 @@ import io.openems.edge.timedata.api.Timedata;
 		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE //
 })
 public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
-		implements EvcsOcppAlfenEveSingle, Evcs, MeasuringEvcs, ManagedEvcs, OpenemsComponent, EventHandler, JsonApi {
+		implements EvcsOcppAlfenEveSingle, Evcs, MeasuringEvcs, ManagedEvcs, OpenemsComponent, EventHandler, ComponentJsonApi {
 
 	// Default value for the hardware limit
 	private static final Integer DEFAULT_HARDWARE_LIMIT = 22080;
@@ -274,6 +275,7 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 
     @Override
     public void buildJsonApiRoutes(JsonApiBuilder builder) {
+        // Handle ApplyChargePowerLimitRequest
         builder.rpc(
             ApplyChargePowerLimitRequest.METHOD,
             call -> {
@@ -288,6 +290,7 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
             }
         );
 
+        // Handle ApplyChargeCurrentLimitRequest
         builder.rpc(
             ApplyChargeCurrentLimitRequest.METHOD,
             call -> {
