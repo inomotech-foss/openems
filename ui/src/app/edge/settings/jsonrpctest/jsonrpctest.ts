@@ -1,21 +1,22 @@
 // @ts-strict-ignore
-import { Component, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { JsonrpcRequest } from 'src/app/shared/jsonrpc/base';
-import { Edge, Service, Websocket } from 'src/app/shared/shared';
-import { environment } from 'src/environments';
+import { Component, OnInit } from "@angular/core";
+import { FormGroup } from "@angular/forms";
+import { ActivatedRoute } from "@angular/router";
+import { JsonrpcRequest } from "src/app/shared/jsonrpc/base";
+import { Edge, Service, Websocket } from "src/app/shared/shared";
+import { environment } from "src/environments";
 
 @Component({
   selector: JsonrpcTestComponent.SELECTOR,
-  templateUrl: './jsonrpctest.html',
+  templateUrl: "./jsonrpctest.html",
+  standalone: false,
 })
 export class JsonrpcTestComponent implements OnInit {
 
   private static readonly SELECTOR = "jsonrpcTest";
 
-  private edge: Edge | undefined;
   protected endpoints: Endpoint[] = [];
+  private edge: Edge | undefined;
 
   constructor(
     private route: ActivatedRoute,
@@ -26,19 +27,19 @@ export class JsonrpcTestComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.service.setCurrentComponent('Jsonrpc Test', this.route).then(edge => {
+    this.service.getCurrentEdge().then(edge => {
       this.edge = edge;
       edge.sendRequest(this.websocket, new JsonrpcRequest("routes", {})).then(response => {
-        this.endpoints = (response.result['endpoints'] as EndpointResponse[]).map(endpoint => {
+        this.endpoints = (response.result["endpoints"] as EndpointResponse[]).map(endpoint => {
           return {
             method: endpoint.method,
-            description: endpoint.description ? endpoint.description.replace('\n', '<br>') : null,
+            description: endpoint.description ? endpoint.description.replace("\n", "<br>") : null,
             tags: endpoint.tags,
             guards: endpoint.guards,
             request: endpoint.request, // JSON.stringify(endpoint.request.json, null, 2),
             response: endpoint.response,
             parent: endpoint.parent,
-            requestMethod: 'raw',
+            requestMethod: "raw",
             form: new FormGroup({}),
             model: {},
             modelRaw: JSON.stringify(createDummyRequest(endpoint.request.json), null, 2),
@@ -46,7 +47,7 @@ export class JsonrpcTestComponent implements OnInit {
         });
       });
     }).catch(e => {
-      this.service.toast(e, 'danger');
+      this.service.toast(e, "danger");
     });
   }
 
@@ -64,8 +65,8 @@ export class JsonrpcTestComponent implements OnInit {
     );
     for (let i = endpoint.parent.length - 1; i >= 0; i--) {
       const parent = endpoint.parent[i];
-      if (environment.backend === 'OpenEMS Backend') {
-        if (parent.method === 'authenticatedRpc') {
+      if (environment.backend === "OpenEMS Backend") {
+        if (parent.method === "authenticatedRpc") {
           break;
         }
       }
@@ -88,7 +89,7 @@ export class JsonrpcTestComponent implements OnInit {
     }
 
 
-    (environment.backend === 'OpenEMS Edge'
+    (environment.backend === "OpenEMS Edge"
       ? this.websocket.sendRequest(request)
       : this.edge.sendRequest(this.websocket, request))
       .then(response => {
@@ -103,20 +104,20 @@ export class JsonrpcTestComponent implements OnInit {
 
 }
 
-function createDummyRequest(endpointType?: EndpointType) {
+function createDummyRequest(endpointType?: ElementDefinition) {
   if (!endpointType) {
     return undefined;
   }
   switch (endpointType.type) {
-    case 'object': {
+    case "object": {
       const obj = {};
       for (const [key, value] of Object.entries(endpointType.properties)) {
         obj[key] = createDummyRequest(value);
       }
       return obj;
     }
-    case 'string': {
-      return 'string';
+    case "string": {
+      return "string";
     }
   }
 }
@@ -127,11 +128,11 @@ type EndpointResponse = {
   tags: Tag[],
   guards: Guard[],
   request: {
-    json: EndpointType,
+    json: ElementDefinition,
     examples: RequestExample[]
   },
   response: {
-    json: EndpointType,
+    json: ElementDefinition,
     examples: RequestExample[]
   },
   parent: { method: string, request: { base: any, pathToSubrequest: string[] } }[],
@@ -151,15 +152,10 @@ type RequestExample = {
   value: {}
 };
 
-type EndpointType =
-  {
-    type: 'object',
-    properties: { [key: string]: EndpointType }
-  }
-  | {
-    type: 'string',
-    constraints: string[]
-  };
+type ElementDefinition =
+  { type: "object", optional: boolean, properties: { [key: string]: ElementDefinition } }
+  | { type: "array", optional: boolean, elementType: ElementDefinition }
+  | { type: "string" | "boolean" | "number", optional: boolean };
 
 type Endpoint = {
   method: string,
@@ -167,12 +163,12 @@ type Endpoint = {
   tags: Tag[],
   guards: Guard[],
   request: {
-    json: EndpointType,
+    json: ElementDefinition,
     examples: RequestExample[],
     selectedExample?: string,
   },
   response: {
-    json: EndpointType,
+    json: ElementDefinition,
     examples: RequestExample[],
   },
   parent: { method: string, request: { base: any, pathToSubrequest: string[] } }[],
