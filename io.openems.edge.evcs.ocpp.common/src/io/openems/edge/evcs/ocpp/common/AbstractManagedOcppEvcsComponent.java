@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -19,6 +21,14 @@ import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
 import eu.chargetime.ocpp.model.Request;
+import eu.chargetime.ocpp.model.core.ChargingProfile;
+import eu.chargetime.ocpp.model.core.ChargingProfileKindType;
+import eu.chargetime.ocpp.model.core.ChargingProfilePurposeType;
+import eu.chargetime.ocpp.model.core.ChargingRateUnitType;
+import eu.chargetime.ocpp.model.core.ChargingSchedule;
+import eu.chargetime.ocpp.model.core.ChargingSchedulePeriod;
+import eu.chargetime.ocpp.model.core.RemoteStartTransactionRequest;
+import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
 import io.openems.common.exceptions.OpenemsException;
 import io.openems.common.types.ChannelAddress;
 import io.openems.common.types.OpenemsType;
@@ -76,6 +86,34 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 	private final ChargeSessionStamp sessionStart = new ChargeSessionStamp();
 
 	private final ChargeSessionStamp sessionEnd = new ChargeSessionStamp();
+
+	public final class CurrentLimitResult {
+		private final boolean transactionLimitSuccess;
+		private final boolean defaultLimitSuccess;
+
+		public CurrentLimitResult(boolean transactionLimitSuccess, boolean defaultLimitSuccess) {
+			this.transactionLimitSuccess = transactionLimitSuccess;
+			this.defaultLimitSuccess = defaultLimitSuccess;
+		}
+
+		/**
+		 * Setting the transaction limit was successful or not.
+		 * 
+		 * @return result of setting the limit
+		 */
+		public boolean transactionLimitSuccess() {
+			return this.transactionLimitSuccess;
+		}
+
+		/**
+		 * Setting the default limit was successful or not.
+		 * 
+		 * @return result of setting the limit
+		 */
+		public boolean defaultLimitSuccess() {
+			return this.defaultLimitSuccess;
+		}
+	}
 
 	protected AbstractManagedOcppEvcsComponent(OcppProfileType[] profileTypes,
 			io.openems.edge.common.channel.ChannelId[] firstInitialChannelIds,
@@ -352,14 +390,126 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 		return false;
 	}
 
+	// TODO: maybe this is needed or maybe not...
+	protected boolean remoteStartTransaction(String idTag) {
+		AtomicBoolean success = new AtomicBoolean(false);
+		try {
+			var request = new RemoteStartTransactionRequest(idTag);
+			this.ocppServer.send(this.sessionId, request).whenComplete((confirmation, throwable) -> {
+				if (throwable != null) {
+					throwable.printStackTrace();
+					return;
+				}
+
+				this.logInfo(this.log, confirmation.toString());
+
+				success.set(confirmation.toString().contains("Accepted"));
+			}).toCompletableFuture().get();
+			return success.get();
+		} catch (OccurenceConstraintException e) {
+			this.logWarn(this.log, "The request is not a valid OCPP request.");
+		} catch (UnsupportedFeatureException e) {
+			this.logWarn(this.log, "This feature is not implemented by the charging station.");
+		} catch (NotConnectedException e) {
+			this.logWarn(this.log, "The server is not connected.");
+		} catch (InterruptedException e) {
+			this.logWarn(this.log, "The thread has been interrupted during sleep");
+		} catch (ExecutionException e) {
+			this.logWarn(this.log, "The task aborted whenWhen attempting to retrieve the result.");
+		}
+		return success.get();
+	}
+
+	protected boolean setChargingProfileCurrentLimit(Integer connectorId, double currentLimit) {
+		AtomicBoolean success = new AtomicBoolean(false);
+
+		try {
+			ChargingSchedulePeriod[] schedulePeriod = { new ChargingSchedulePeriod(0, currentLimit) };
+			ChargingSchedule schedule = new ChargingSchedule(ChargingRateUnitType.A, schedulePeriod);
+
+			var profile = new ChargingProfile(1, 0, ChargingProfilePurposeType.ChargePointMaxProfile,
+					ChargingProfileKindType.Absolute, schedule);
+
+			var request = new SetChargingProfileRequest(connectorId, profile);
+			this.ocppServer.send(this.sessionId, request).whenComplete((confirmation, throwable) -> {
+				if (throwable != null) {
+					throwable.printStackTrace();
+					return;
+				}
+
+				this.logInfo(this.log, confirmation.toString());
+
+				success.set(confirmation.toString().contains("Accepted"));
+			}).toCompletableFuture().get();
+			return success.get();
+		} catch (OccurenceConstraintException e) {
+			this.logWarn(this.log, "The request is not a valid OCPP request.");
+		} catch (UnsupportedFeatureException e) {
+			this.logWarn(this.log, "This feature is not implemented by the charging station.");
+		} catch (NotConnectedException e) {
+			this.logWarn(this.log, "The server is not connected.");
+		} catch (InterruptedException e) {
+			this.logWarn(this.log, "The thread has been interrupted during sleep");
+		} catch (ExecutionException e) {
+			this.logWarn(this.log, "The task aborted whenWhen attempting to retrieve the result.");
+		}
+
+		return success.get();
+	}
+
 	@Override
 	public boolean applyChargePowerLimit(int power) throws OpenemsException {
 		return this.setPower(power);
 	}
 
+	/**
+	 * Set chagrge current limit for transaction and default profile.
+	 * 
+	 * @param connectorId ID of the connector to which the limits should be applied to
+	 * @param current the current limit
+	 * @return the result of the operation
+	 * @throws OpenemsException on error
+	 */
+	public CurrentLimitResult applyChargeCurrentLimit(int connectorId, int current) throws OpenemsException {
+		return this.setCurrent(connectorId, current);
+	}
+
 	@Override
 	public boolean pauseChargeProcess() throws OpenemsException {
 		return this.setPower(0);
+	}
+
+	private boolean applyLimit(Request request) {
+		if (request == null) {
+			return false;
+		}
+		AtomicBoolean success = new AtomicBoolean(false);
+
+		try {
+			this.ocppServer.send(this.sessionId, request).whenComplete((confirmation, throwable) -> {
+				if (throwable != null) {
+					throwable.printStackTrace();
+					return;
+				}
+
+				this.logInfo(this.log, confirmation.toString());
+
+				success.set(confirmation.toString().contains("Accepted"));
+			}).toCompletableFuture().get();
+			return success.get();
+
+		} catch (OccurenceConstraintException e) {
+			this.logWarn(this.log, "The request is not a valid OCPP request.");
+		} catch (UnsupportedFeatureException e) {
+			this.logWarn(this.log, "This feature is not implemented by the charging station.");
+		} catch (NotConnectedException e) {
+			this.logWarn(this.log, "The server is not connected.");
+		} catch (InterruptedException e) {
+			this.logWarn(this.log, "The thread has been interrupted during sleep");
+		} catch (ExecutionException e) {
+			this.logWarn(this.log, "The task aborted whenWhen attempting to retrieve the result.");
+		}
+		return success.get();
 	}
 
 	/**
@@ -374,28 +524,12 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 	 * @return Returns true if the power was set correctly.
 	 */
 	private boolean setPower(int power) {
-
-		Request request = this.getStandardRequests().setChargePowerLimit(power);
-
-		try {
-			this.ocppServer.send(this.sessionId, request).whenComplete((confirmation, throwable) -> {
-				if (throwable != null) {
-					throwable.printStackTrace();
-					return;
-				}
-
-				this.logInfo(this.log, confirmation.toString());
-			});
-
-			return true;
-
-		} catch (OccurenceConstraintException e) {
-			this.logWarn(this.log, "The request is not a valid OCPP request.");
-		} catch (UnsupportedFeatureException e) {
-			this.logWarn(this.log, "This feature is not implemented by the charging station.");
-		} catch (NotConnectedException e) {
-			this.logWarn(this.log, "The server is not connected.");
-		}
-		return false;
+		return this.applyLimit(this.getStandardRequests().setChargePowerLimit(power));
 	}
+
+	private CurrentLimitResult setCurrent(int connectorId, int current) {
+		return new CurrentLimitResult(this.applyLimit(this.getStandardRequests().setTxProfile(connectorId, current)),
+				this.applyLimit(this.getStandardRequests().setTxDefaultProfile(connectorId, current)));
+	}
+
 }

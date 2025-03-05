@@ -14,6 +14,7 @@ import org.eclipse.paho.mqttv5.client.IMqttClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
 import org.eclipse.paho.mqttv5.client.MqttClient;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
+import org.eclipse.paho.mqttv5.client.persist.MemoryPersistence;
 import org.eclipse.paho.mqttv5.common.MqttException;
 
 /**
@@ -67,20 +68,23 @@ public class MqttConnector {
 		this.executor.shutdownNow();
 	}
 
-	protected synchronized CompletableFuture<IMqttClient> connect(String serverUri, String clientId, String username,
-			String password, String certPem, String privateKeyPem, String trustStorePem)
-			throws IllegalArgumentException, MqttException {
-		return this.connect(serverUri, clientId, username, password, certPem, privateKeyPem, trustStorePem, null);
-	}
+    protected synchronized CompletableFuture<IMqttClient> connect(String serverUri, String clientId, String username,
+            String password, String certPem, String privateKeyPem, String trustStorePem)
+            throws IllegalArgumentException, MqttException {
+        return this.connect(serverUri, clientId, username, password, certPem, privateKeyPem, trustStorePem, null);
+    }
 
-	protected synchronized CompletableFuture<IMqttClient> connect(String serverUri, String clientId, String username,
-			String password, String certPem, String privateKeyPem, String trustStorePem, MqttCallback callback)
-			throws IllegalArgumentException, MqttException {
-		IMqttClient client = new MqttClient(serverUri, clientId);
-		if (callback != null) {
-			client.setCallback(callback);
-		}
+    protected synchronized CompletableFuture<IMqttClient> connect(String serverUri, String clientId, String username,
+            String password, String certPem, String privateKeyPem, String trustStorePem, MqttCallback callback)
+            throws IllegalArgumentException, MqttException {
+        // Use MemoryPersistence for in-memory persistence
+        MemoryPersistence persistence = new MemoryPersistence();
 
+        // Create the MQTT client with the persistence storage
+        IMqttClient client = new MqttClient(serverUri, clientId, persistence);
+        if (callback != null) {
+            client.setCallback(callback);
+        }
 		var options = new MqttConnectionOptions();
 		options.setUserName(username);
 		if (password != null && !password.isBlank()) {
