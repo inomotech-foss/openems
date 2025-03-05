@@ -1,9 +1,9 @@
 package io.openems.edge.evcs.ocpp.common;
 
 import io.openems.edge.common.channel.ChannelId;
-import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.api.MeasuringEvcs;
 import io.openems.edge.evcs.api.SocEvcs;
+import io.openems.edge.meter.api.ElectricityMeter;
 
 public enum OcppInformations {
 
@@ -158,7 +158,7 @@ public enum OcppInformations {
 	 * UnitOfMeasure for frequency, the UnitOfMeasure for any SampledValue with
 	 * measurand: Frequency is Hertz.
 	 */
-	CORE_METER_VALUES_FREQUENCY("Frequency", MeasuringEvcs.ChannelId.FREQUENCY),
+	CORE_METER_VALUES_FREQUENCY("Frequency", ElectricityMeter.ChannelId.FREQUENCY),
 
 	/**
 	 * Instantaneous active power exported by EV. (W)
@@ -168,7 +168,7 @@ public enum OcppInformations {
 	/**
 	 * Instantaneous active power imported by EV. (W)
 	 */
-	CORE_METER_VALUES_POWER_ACTIVE_IMPORT("Power.Active.Import", Evcs.ChannelId.CHARGE_POWER),
+	CORE_METER_VALUES_POWER_ACTIVE_IMPORT("Power.Active.Import", ElectricityMeter.ChannelId.ACTIVE_POWER),
 
 	/**
 	 * Instantaneous active power on L1 imported by EV. (W)
@@ -224,6 +224,7 @@ public enum OcppInformations {
 	/**
 	 * Instantaneous AC RMS supply voltage.
 	 */
+<<<<<<< HEAD
 	CORE_METER_VALUES_VOLTAGE("Voltage", MeasuringEvcs.ChannelId.VOLTAGE),
 
 	/**
@@ -255,6 +256,9 @@ public enum OcppInformations {
 	 * Instantaneous AC RMS supply voltage L3-L1.
 	 */
 	CORE_METER_VALUES_VOLTAGE_L3_L1("Voltage.L3-L1", MeasuringEvcs.ChannelId.VOLTAGE_L3_L1);
+=======
+	CORE_METER_VALUES_VOLTAGE("Voltage", ElectricityMeter.ChannelId.VOLTAGE);
+>>>>>>> refs/remotes/origin/main
 
 	private final String ocppValue;
 	private final ChannelId channelId;

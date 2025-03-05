@@ -4,6 +4,9 @@
 module.exports = function (config) {
   config.set({
     basePath: '',
+    browserDisconnectTimeout: 10000,  // default 2000
+    browserNoActivityTimeout: 60000,  // default 30000
+    browserDisconnectTolerance: 2,    // default 0
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
     preprocessor: {
       'src/**/*.ts': ['coverage']
@@ -31,7 +34,7 @@ module.exports = function (config) {
       dir: require('path').join(__dirname, './coverage/ngv'),
       subdir: '.',
       reporters: [
-        {type: 'lcov'},
+        { type: 'lcov' },
         { type: 'html' },
         { type: 'text-summary' }
       ],

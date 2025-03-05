@@ -6,6 +6,7 @@ import io.openems.common.channel.Unit;
 import io.openems.common.types.OpenemsType;
 import io.openems.edge.common.channel.Doc;
 
+// TODO consider replacing this by ElectricityMeter
 public interface MeasuringEvcs extends Evcs {
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
@@ -554,6 +555,7 @@ public interface MeasuringEvcs extends Evcs {
 				.text("Fan speed")),
 
 		/**
+<<<<<<< HEAD
 		 * Voltage.
 		 *
 		 * <p>
@@ -680,6 +682,8 @@ public interface MeasuringEvcs extends Evcs {
 				.text("Voltage.L3-L1")),
 
 		/**
+=======
+>>>>>>> refs/remotes/origin/main
 		 * Temperature.
 		 *
 		 * <p>
