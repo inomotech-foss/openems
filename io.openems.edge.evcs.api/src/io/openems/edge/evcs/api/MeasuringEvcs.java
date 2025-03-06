@@ -555,7 +555,6 @@ public interface MeasuringEvcs extends Evcs {
 				.text("Fan speed")),
 
 		/**
-<<<<<<< HEAD
 		 * Voltage.
 		 *
 		 * <p>
@@ -682,8 +681,6 @@ public interface MeasuringEvcs extends Evcs {
 				.text("Voltage.L3-L1")),
 
 		/**
-=======
->>>>>>> refs/remotes/origin/main
 		 * Temperature.
 		 *
 		 * <p>

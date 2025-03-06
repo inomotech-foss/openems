@@ -29,20 +29,22 @@ import eu.chargetime.ocpp.model.core.ChargingRateUnitType;
 import eu.chargetime.ocpp.model.core.ChargingSchedule;
 import eu.chargetime.ocpp.model.core.ChargingSchedulePeriod;
 import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
+import io.openems.common.types.MeterType;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
 import io.openems.edge.common.jsonapi.ComponentJsonApi;
 import io.openems.edge.common.jsonapi.JsonApiBuilder;
-import io.openems.edge.common.jsonapi.JsonrpcEndpointGuard;
 import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.api.EvcsPower;
 import io.openems.edge.evcs.api.ManagedEvcs;
 import io.openems.edge.evcs.api.MeasuringEvcs;
+import io.openems.edge.evcs.api.PhaseRotation;
 import io.openems.edge.evcs.ocpp.common.AbstractManagedOcppEvcsComponent;
 import io.openems.edge.evcs.ocpp.common.OcppInformations;
 import io.openems.edge.evcs.ocpp.common.OcppProfileType;
 import io.openems.edge.evcs.ocpp.common.OcppStandardRequests;
+import io.openems.edge.meter.api.ElectricityMeter;
 import io.openems.edge.timedata.api.Timedata;
 
 @Designate(ocd = Config.class, factory = true)
@@ -56,7 +58,7 @@ import io.openems.edge.timedata.api.Timedata;
 		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE //
 })
 public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
-		implements EvcsOcppAlfenEveSingle, Evcs, MeasuringEvcs, ManagedEvcs, OpenemsComponent, EventHandler, ComponentJsonApi {
+		implements EvcsOcppAlfenEveSingle, Evcs, MeasuringEvcs, ManagedEvcs, ElectricityMeter, OpenemsComponent, EventHandler, ComponentJsonApi {
 
 	// Default value for the hardware limit
 	private static final Integer DEFAULT_HARDWARE_LIMIT = 22080;
@@ -87,8 +89,8 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 		super(//
 				PROFILE_TYPES, //
 				OpenemsComponent.ChannelId.values(), //
+				ElectricityMeter.ChannelId.values(), //
 				Evcs.ChannelId.values(), //
-				AbstractManagedOcppEvcsComponent.ChannelId.values(), //
 				ManagedEvcs.ChannelId.values(), //
 				MeasuringEvcs.ChannelId.values(), //
 				EvcsOcppAlfenEveSingle.ChannelId.values() //
@@ -124,6 +126,18 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
 	@Override
 	public void handleEvent(Event event) {
 		super.handleEvent(event);
+	}
+	
+
+	@Override
+	public MeterType getMeterType() {
+		return MeterType.MANAGED_CONSUMPTION_METERED;
+	}
+
+	@Override
+	public PhaseRotation getPhaseRotation() {
+		// TODO implement handling for rotated Phases
+		return PhaseRotation.L1_L2_L3;
 	}
 
 	@Override
@@ -306,4 +320,5 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
             }
         );
     }
+
 }

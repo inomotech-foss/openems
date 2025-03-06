@@ -1,8 +1,8 @@
 package io.openems.edge.meter.entes.mpr15s22;
 
-import io.openems.common.utils.ConfigUtils;
-import io.openems.edge.meter.api.MeterType;
 import io.openems.common.test.AbstractComponentConfig;
+import io.openems.common.types.MeterType;
+import io.openems.common.utils.ConfigUtils;
 
 @SuppressWarnings("all")
 public class MyConfig extends AbstractComponentConfig implements Config {
