@@ -14,8 +14,8 @@ Export-Package: \
 	org.eclipse.paho.mqttv5.client.internal,\
 	org.eclipse.paho.mqttv5.client.util,\
 	org.eclipse.paho.mqttv5.client.spi,\
+	org.eclipse.paho.mqttv5.client.persist,\
 	org.eclipse.paho.mqttv5.common,\
 	org.eclipse.paho.mqttv5.common.packet,\
-	org.eclipse.paho.mqttv5.common.packet.util,\
-	
+	org.eclipse.paho.mqttv5.common.packet.util
 -sources: false
