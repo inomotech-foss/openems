@@ -16,6 +16,7 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -46,6 +47,7 @@ import io.openems.edge.common.test.ComponentTest;
 import io.openems.edge.common.test.DummyComponentContext;
 import io.openems.edge.common.test.DummyComponentManager;
 import io.openems.edge.common.test.DummyConfigurationAdmin;
+import io.openems.edge.common.test.DummyMeta;
 import io.openems.edge.common.user.User;
 import io.openems.edge.core.appmanager.DummyValidator.TestCheckable;
 import io.openems.edge.core.appmanager.dependency.AppConfigValidator;
@@ -80,6 +82,7 @@ public class AppManagerTestBundle {
 	public final ComponentUtil componentUtil;
 	public final Validator validator;
 	public final DummyHost host = new DummyHost();
+	public final DummyMeta meta = new DummyMeta("_meta");
 
 	public final DummyAppManagerAppHelper appHelper;
 	public final AppManagerImpl sut;
