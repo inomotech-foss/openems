@@ -9,7 +9,7 @@ import { ChartAxis, YAxisType } from "src/app/shared/service/utils";
 import { Language } from "src/app/shared/type/language";
 
 import { ObjectUtils } from "src/app/shared/utils/object/object.utils";
-import { ChannelAddress, Edge, EdgeConfig, Service, Utils } from "../../../shared/shared";
+import { ChannelAddress, ChartConstants, Edge, EdgeConfig, Service, Utils } from "../../../shared/shared";
 import { AbstractHistoryChart } from "../abstracthistorychart";
 
 @Component({
@@ -181,14 +181,21 @@ export class StorageSingleChartComponent extends AbstractHistoryChart implements
                                 }
                             }
                         });
-                        this.datasets = datasets;
-                    });
+                        this.datasets = datasets.map((el, i) => ({ ...el, ...ChartConstants.Plugins.Datasets.HOVER_ENHANCE(this.colors[i]) }));;
+                        this.loading = false;
+                        this.stopSpinner();
+                    }).finally(async () => {
+                        this.unit = YAxisType.ENERGY;
+                        await this.setOptions(this.options);
+                        this.applyControllerSpecificChartOptions(this.options);
+                        this.loading = false;
+                        this.stopSpinner();
+                    });;
                 }).catch(reason => {
                     console.error(reason); // TODO error message
                     this.initializeChart();
                     return;
                 });
-
             }).catch(reason => {
                 console.error(reason); // TODO error message
                 this.initializeChart();
@@ -199,12 +206,6 @@ export class StorageSingleChartComponent extends AbstractHistoryChart implements
             console.error(reason); // TODO error message
             this.initializeChart();
             return;
-        }).finally(async () => {
-            this.unit = YAxisType.ENERGY;
-            await this.setOptions(this.options);
-            this.applyControllerSpecificChartOptions(this.options);
-            this.loading = false;
-            this.stopSpinner();
         });
 
     }

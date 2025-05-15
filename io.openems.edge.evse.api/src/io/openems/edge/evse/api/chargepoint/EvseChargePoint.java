@@ -1,8 +1,13 @@
 package io.openems.edge.evse.api.chargepoint;
 
-import com.google.common.collect.ImmutableList;
+import static io.openems.common.jsonrpc.serialization.JsonSerializerUtil.jsonObjectSerializer;
+import static io.openems.common.utils.JsonUtils.buildJsonObject;
 
-import io.openems.common.channel.PersistencePriority;
+import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonNull;
+
+import io.openems.common.jsonrpc.serialization.JsonSerializer;
+import io.openems.common.types.OpenemsType;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.value.Value;
@@ -14,19 +19,16 @@ public interface EvseChargePoint extends ElectricityMeter, OpenemsComponent {
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
 		/**
-		 * Status.
-		 *
-		 * <p>
-		 * The Status of the EVSE Charge-Point.
-		 *
+		 * Charge-Point is ready for charging.
+		 * 
 		 * <ul>
-		 * <li>Interface: Evse.ChargePoint
-		 * <li>Readable
-		 * <li>Type: Status
+		 * <li>Cable is plugged on Charge-Point and Electric-Vehicle
+		 * <li>RFID authorization is OK (if required)
+		 * <li>There are no known errors
+		 * <li>...
 		 * </ul>
 		 */
-		STATUS(Doc.of(Status.values()) //
-				.persistencePriority(PersistencePriority.HIGH)), //
+		IS_READY_FOR_CHARGING(Doc.of(OpenemsType.BOOLEAN)) //
 		;
 
 		private final Doc doc;
@@ -41,17 +43,30 @@ public interface EvseChargePoint extends ElectricityMeter, OpenemsComponent {
 		}
 	}
 
-	public sealed interface ApplyCharge {
-		public record SetCurrent(int current) implements ApplyCharge {
+	public record ChargeParams(boolean isReadyForCharging, Limit limit, ImmutableList<Profile> profiles) {
+
+		/**
+		 * Returns a {@link JsonSerializer} for a {@link ChargeParams}.
+		 * 
+		 * @return the created {@link JsonSerializer}
+		 */
+		public static JsonSerializer<ChargeParams> serializer() {
+			return jsonObjectSerializer(ChargeParams.class, json -> {
+				return new ChargeParams(//
+						json.getBoolean("isReadyForCharging"), //
+						json.getObject("limit", Limit.serializer()), //
+						// TODO json.getImmutableList("profiles", Profile.serializer())
+						ImmutableList.of());
+			}, obj -> {
+				return obj == null //
+						? JsonNull.INSTANCE //
+						: buildJsonObject() //
+								.addProperty("isReadyForCharging", obj.isReadyForCharging) //
+								.add("limit", Limit.serializer().serialize(obj.limit)) //
+								// TODO .add("profiles", ...) //
+								.build();
+			});
 		}
-
-		public static final Zero ZERO = new Zero();
-
-		public record Zero() implements ApplyCharge {
-		}
-	}
-
-	public record ChargeParams(Limit limit, ImmutableList<Profile> profiles) {
 	}
 
 	/**
@@ -62,12 +77,12 @@ public interface EvseChargePoint extends ElectricityMeter, OpenemsComponent {
 	public ChargeParams getChargeParams();
 
 	/**
-	 * Apply an {@link ApplyCharge} and optionally {@link Profile.Command}s.
+	 * Apply Current in [mA] and optionally {@link Profile.Command}s.
 	 * 
-	 * @param applyCharge     the {@link ApplyCharge}
+	 * @param current         the Current in [mA]
 	 * @param profileCommands the {@link Profile.Command}s
 	 */
-	public void apply(ApplyCharge applyCharge, ImmutableList<Profile.Command> profileCommands);
+	public void apply(int current, ImmutableList<Profile.Command> profileCommands);
 
 	/**
 	 * Is this Charge-Point installed according to standard or rotated wiring?. See
@@ -78,20 +93,21 @@ public interface EvseChargePoint extends ElectricityMeter, OpenemsComponent {
 	public PhaseRotation getPhaseRotation();
 
 	/**
-	 * Gets the Channel for {@link ChannelId#STATUS}.
+	 * Gets the Channel for {@link ChannelId#IS_READY_FOR_CHARGING}.
 	 *
 	 * @return the Channel
 	 */
-	public default Channel<Status> getStatusChannel() {
-		return this.channel(ChannelId.STATUS);
+	public default Channel<Boolean> getIsReadyForChargingChannel() {
+		return this.channel(ChannelId.IS_READY_FOR_CHARGING);
 	}
 
 	/**
-	 * Gets the Status of the EVCS charging station. See {@link ChannelId#STATUS}.
+	 * Gets the Plug-Status of the Charge Point. See
+	 * {@link ChannelId#IS_READY_FOR_CHARGING}.
 	 *
 	 * @return the Channel {@link Value}
 	 */
-	public default Status getStatus() {
-		return this.getStatusChannel().value().asEnum();
+	public default boolean getIsReadyForCharging() {
+		return this.getIsReadyForChargingChannel().value().orElse(false);
 	}
 }
