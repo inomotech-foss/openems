@@ -10,7 +10,7 @@ RUN --mount=type=bind,target=.,readwrite \
         ./gradlew --no-build-cache buildBackend
 
 ### Build jar container base
-FROM ghcr.io/linuxserver/baseimage-alpine:edge AS base_container
+FROM --platform=$TARGETPLATFORM alpine:edge AS base_container
 
 ARG JAVA_VERSION
 

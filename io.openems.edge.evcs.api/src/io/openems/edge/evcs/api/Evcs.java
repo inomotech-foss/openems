@@ -62,6 +62,48 @@ public interface Evcs extends ElectricityMeter, OpenemsComponent {
 				.persistencePriority(PersistencePriority.HIGH)), //
 
 		/**
+		 * Charge Power on L1.
+		 *
+		 * <ul>
+		 * <li>Interface: Evcs
+		 * <li>Readable
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		CHARGE_POWER_L1(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT).accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH)), //
+
+		/**
+		 * Charge Power on L2.
+		 *
+		 * <ul>
+		 * <li>Interface: Evcs
+		 * <li>Readable
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		CHARGE_POWER_L2(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT).accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH)), //
+
+		/**
+		 * Charge Power on L3.
+		 *
+		 * <ul>
+		 * <li>Interface: Evcs
+		 * <li>Readable
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		CHARGE_POWER_L3(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT).accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH)), //
+
+		/**
 		 * Charging Type.
 		 *
 		 * <p>

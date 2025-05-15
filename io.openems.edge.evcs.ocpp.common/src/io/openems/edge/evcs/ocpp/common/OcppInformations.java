@@ -18,6 +18,21 @@ public enum OcppInformations {
 	CORE_METER_VALUES_CURRENT_IMPORT("Current.Import", MeasuringEvcs.ChannelId.CURRENT_TO_EV),
 
 	/**
+	 * Instantaneous current flow on L1 to EV in mA.
+	 */
+	CORE_METER_VALUES_CURRENT_IMPORT_L1("Current.Import.L1", MeasuringEvcs.ChannelId.CURRENT_TO_EV_L1),
+
+	/**
+	 * Instantaneous current flow on L2 to EV in mA.
+	 */
+	CORE_METER_VALUES_CURRENT_IMPORT_L2("Current.Import.L2", MeasuringEvcs.ChannelId.CURRENT_TO_EV_L2),
+
+	/**
+	 * Instantaneous current flow on L3 to EV in mA.
+	 */
+	CORE_METER_VALUES_CURRENT_IMPORT_L3("Current.Import.L3", MeasuringEvcs.ChannelId.CURRENT_TO_EV_L3),
+
+	/**
 	 * Maximum current offered to EV in mA.
 	 */
 	CORE_METER_VALUES_CURRENT_OFFERED("Current.Offered", MeasuringEvcs.ChannelId.CURRENT_OFFERED),
@@ -39,6 +54,30 @@ public enum OcppInformations {
 			MeasuringEvcs.ChannelId.ENERGY_ACTIVE_TO_EV),
 
 	/**
+	 * Numerical value read from the "active electrical energy" (Wh) register of the
+	 * (most authoritative) electrical meter measuring the total energy imported
+	 * (from the grid supply on L1).
+	 */
+	CORE_METER_VALUES_ENERGY_ACTIVE_IMPORT_REGISTER_L1("Energy.Active.Import.Register.L1",
+			MeasuringEvcs.ChannelId.ENERGY_ACTIVE_TO_EV_L1),
+
+	/**
+	 * Numerical value read from the "active electrical energy" (Wh) register of the
+	 * (most authoritative) electrical meter measuring the total energy imported
+	 * (from the grid supply on L2).
+	 */
+	CORE_METER_VALUES_ENERGY_ACTIVE_IMPORT_REGISTER_L2("Energy.Active.Import.Register.L2",
+			MeasuringEvcs.ChannelId.ENERGY_ACTIVE_TO_EV_L2),
+
+	/**
+	 * Numerical value read from the "active electrical energy" (Wh) register of the
+	 * (most authoritative) electrical meter measuring the total energy imported
+	 * (from the grid supply on L3).
+	 */
+	CORE_METER_VALUES_ENERGY_ACTIVE_IMPORT_REGISTER_L3("Energy.Active.Import.Register.L3",
+			MeasuringEvcs.ChannelId.ENERGY_ACTIVE_TO_EV_L3),
+
+	/**
 	 * Numerical value read from the "reactive electrical energy" (VARh) register of
 	 * the (most authoritative) electrical meter measuring energy exported (to the
 	 * grid).
@@ -53,6 +92,30 @@ public enum OcppInformations {
 	 */
 	CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER("Energy.Reactive.Import.Register",
 			MeasuringEvcs.ChannelId.ENERGY_REACTIVE_TO_EV),
+
+	/**
+	 * Numerical value read from the "reactive electrical energy" (VARh) register of
+	 * the (most authoritative) electrical meter measuring energy imported (from the
+	 * grid supply).
+	 */
+	CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER_L1("Energy.Reactive.Import.Register.L1",
+			MeasuringEvcs.ChannelId.ENERGY_REACTIVE_TO_EV_L1),
+
+	/**
+	 * Numerical value read from the "reactive electrical energy" (VARh) register of
+	 * the (most authoritative) electrical meter measuring energy imported (from the
+	 * grid supply).
+	 */
+	CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER_L2("Energy.Reactive.Import.Register.L2",
+			MeasuringEvcs.ChannelId.ENERGY_REACTIVE_TO_EV_L2),
+
+	/**
+	 * Numerical value read from the "reactive electrical energy" (VARh) register of
+	 * the (most authoritative) electrical meter measuring energy imported (from the
+	 * grid supply).
+	 */
+	CORE_METER_VALUES_ENERGY_REACTIVE_IMPORT_REGISTER_L3("Energy.Reactive.Import.Register.L3",
+			MeasuringEvcs.ChannelId.ENERGY_REACTIVE_TO_EV_L3),
 
 	/**
 	 * Absolute amount of "active electrical energy" (Wh) exported (to the grid)
@@ -108,6 +171,21 @@ public enum OcppInformations {
 	CORE_METER_VALUES_POWER_ACTIVE_IMPORT("Power.Active.Import", ElectricityMeter.ChannelId.ACTIVE_POWER),
 
 	/**
+	 * Instantaneous active power on L1 imported by EV. (W)
+	 */
+	CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L1("Power.Active.Import.L1", ElectricityMeter.ChannelId.ACTIVE_POWER_L1),
+
+	/**
+	 * Instantaneous active power on L2 imported by EV. (W)
+	 */
+	CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L2("Power.Active.Import.L2", ElectricityMeter.ChannelId.ACTIVE_POWER_L2),
+
+	/**
+	 * Instantaneous active power on L3 imported by EV. (W)
+	 */
+	CORE_METER_VALUES_POWER_ACTIVE_IMPORT_L3("Power.Active.Import.L3", ElectricityMeter.ChannelId.ACTIVE_POWER_L3),
+
+	/**
 	 * Instantaneous power factor of total energy flow.
 	 */
 	CORE_METER_VALUES_POWER_FACTOR("Power.Factor", MeasuringEvcs.ChannelId.POWER_FACTOR),
@@ -146,7 +224,37 @@ public enum OcppInformations {
 	/**
 	 * Instantaneous AC RMS supply voltage.
 	 */
-	CORE_METER_VALUES_VOLTAGE("Voltage", ElectricityMeter.ChannelId.VOLTAGE);
+	CORE_METER_VALUES_VOLTAGE("Voltage", MeasuringEvcs.ChannelId.VOLTAGE),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L1-N.
+	 */
+	CORE_METER_VALUES_VOLTAGE_L1_N("Voltage.L1-N", MeasuringEvcs.ChannelId.VOLTAGE_L1_N),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L2-N.
+	 */
+	CORE_METER_VALUES_VOLTAGE_L2_N("Voltage.L2-N", MeasuringEvcs.ChannelId.VOLTAGE_L2_N),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L3-N.
+	 */
+	CORE_METER_VALUES_VOLTAGE_L3_N("Voltage.L3-N", MeasuringEvcs.ChannelId.VOLTAGE_L3_N),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L1-L2.
+	 */
+	CORE_METER_VALUES_VOLTAGE_L1_L2("Voltage.L1-L2", MeasuringEvcs.ChannelId.VOLTAGE_L1_L2),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L2-L3.
+	 */
+	CORE_METER_VALUES_VOLTAGE_L2_L3("Voltage.L2-L3", MeasuringEvcs.ChannelId.VOLTAGE_L2_L3),
+
+	/**
+	 * Instantaneous AC RMS supply voltage L3-L1.
+	 */
+	CORE_METER_VALUES_VOLTAGE_L3_L1("Voltage.L3-L1", MeasuringEvcs.ChannelId.VOLTAGE_L3_L1);
 
 	private final String ocppValue;
 	private final ChannelId channelId;
