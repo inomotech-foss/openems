@@ -4,14 +4,6 @@
 
 -resolve.effective: active
 
--runpath: biz.aQute.remote.launcher
- 
--runremote: \
-pi; \
-    shell = -1; \
-    jdb = 5005; \
-    host = ech-dev
-
 -runproperties:\
 	org.osgi.service.http.port=8080,\
 	felix.cm.dir=c:/openems/config,\

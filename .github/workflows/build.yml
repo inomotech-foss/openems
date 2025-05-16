@@ -36,8 +36,6 @@ jobs:
       - name: Validate EdgeApp.bndrun
         run: git diff --exit-code io.openems.edge.application/EdgeApp.bndrun
 
-<<<<<<< HEAD
-=======
       - name: Generate JaCoCo Code-coverage-report
         run: ./gradlew jacocoTestReport jacocoAggregatedReport
 
@@ -47,7 +45,6 @@ jobs:
           flags: java
           token: ${{ secrets.CODECOV_TOKEN }}
 
->>>>>>> refs/remotes/origin/main
   build-ui:
     runs-on: ubuntu-latest
     steps:
