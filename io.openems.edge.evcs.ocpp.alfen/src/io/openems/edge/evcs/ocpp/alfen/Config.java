@@ -3,33 +3,35 @@ package io.openems.edge.evcs.ocpp.alfen;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
-@ObjectClassDefinition(//
-		name = "OCPP EVCS Alfen Eve Single", //
-		description = "Implements an OCPP capable Alfen Eve Single electric vehicle charging station.")
+/** OSGi-Konfiguration für die Alfen Eve Single. */
+@ObjectClassDefinition(
+    name        = "OCPP EVCS Alfen Eve Single",
+    description = "OpenEMS component for an Alfen Eve Single (OCPP 1.6-J).")
 @interface Config {
 
-	@AttributeDefinition(name = "Component-ID", description = "Unique ID of this Component")
-	String id() default "evcs0";
+    @AttributeDefinition(name = "Component-ID")
+    String id() default "evcs0";
 
-	@AttributeDefinition(name = "Alias", description = "Human-readable name of this Component; defaults to Component-ID")
-	String alias() default "";
+    @AttributeDefinition(name = "Alias")
+    String alias() default "";
 
-	@AttributeDefinition(name = "Is enabled?", description = "Is this Component enabled?")
-	boolean enabled() default true;
+    @AttributeDefinition(name = "Enabled?")
+    boolean enabled() default true;
 
-	@AttributeDefinition(name = "OCPP chargepoint identifier", description = "The OCPP identifier of the charging station.", required = true)
-	String ocppId() default "";
+    @AttributeDefinition(name = "OCPP ChargePoint ID", required = true)
+    String ocppId() default "";
 
-	@AttributeDefinition(name = "OCPP connector identifier", description = "The connector id of the chargepoint (e.g. if there are two connectors, then the evcs has two id's 1 and 2).", required = true)
-	int connectorId() default 0;
+    @AttributeDefinition(name = "Connector-ID", required = true,
+                         description = "Usually 1 for a single socket.")
+    int connectorId() default 1;
 
-	// TODO check real world default values
+    @AttributeDefinition(name = "Maximum Hardware Power [W]", required = true)
+    int maxHwPower() default 22000;
 
-	@AttributeDefinition(name = "Maximum power", description = "Maximum power of the charger in Watt.", required = true)
-	int maxHwPower() default 22000;
+    @AttributeDefinition(name = "Minimum Hardware Power [W]", required = true)
+    int minHwPower() default 6000;
 
-	@AttributeDefinition(name = "Minimum power", description = "Minimum power of the charger in Watt.", required = true)
-	int minHwPower() default 11000;
-
-	String webconsole_configurationFactory_nameHint() default "EVCS OCPP Alfen [{id}]";
+    @AttributeDefinition(name = "Name-Hint",
+        description = "Shown in Web-Console")
+    String webconsole_configurationFactory_nameHint() default "EVCS Alfen [{id}]";
 }
