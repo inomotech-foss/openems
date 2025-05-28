@@ -10,10 +10,37 @@ public class ChargeStateHandler {
 
 	private final ManagedEvcs parent;
 	private Instant lastChargeStateTime = Instant.MIN;
-	private ChargeState chargeState = ChargeState.CHARGING;
+	private ChargeState chargeState = ChargeState.UNDEFINED;
 
 	public ChargeStateHandler(ManagedEvcs parent) {
 		this.parent = parent;
+	}
+
+	/**
+	 * Combined detection of an active charging process:
+	 * <ol>
+	 * <li>At least one phase current > 450 mA</li>
+	 * <li>Fallback: Active power ≥ {@code POWER_PRECISION} of EVCS (typically
+	 * 230 W)</li>
+	 * </ol>
+	 */
+	public boolean isChargingDetected() {
+		int i1 = parent.getCurrentL1().orElse(0);
+		int i2 = parent.getCurrentL2().orElse(0);
+		int i3 = parent.getCurrentL3().orElse(0);
+
+		// 1) Current criterion - actual charging only above > 450 mA per phase
+		
+		int x = Evcs.MIN_EVCS_ACTIVITY_CURRENT;
+		if (i1 > x || i2 > x || i3 > x) {
+			return true;
+		}
+
+		// 2) Fallback - active power threshold = POWER_PRECISION
+		int p = parent.getActivePower().orElse(0);
+		int precision = parent.getPowerPrecision().orElse(Evcs.DEFAULT_POWER_PRECISION);
+		
+		return p >= precision;
 	}
 
 	/**
@@ -23,7 +50,7 @@ public class ChargeStateHandler {
 	 * Set the ChargeState, if there is no pause active (for increasing and
 	 * reducing). The Pause will be ignored and reset, if the given ChargeState is
 	 * changing from INCREASING to REDUCING.
-	 * 
+	 *
 	 * @param reqChargeState ChargeState
 	 * @return true when the requiredChargeState is taken
 	 */
@@ -65,7 +92,7 @@ public class ChargeStateHandler {
 
 	/**
 	 * Is pause active.
-	 * 
+	 *
 	 * @return boolean
 	 */
 	private boolean isPauseActive() {

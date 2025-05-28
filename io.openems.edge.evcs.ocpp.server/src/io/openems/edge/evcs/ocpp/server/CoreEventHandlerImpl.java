@@ -222,8 +222,12 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 							var now = Instant.now(this.parent.componentManager.getClock());
 
 							if ((int) correctValue > 0) {
-								evcs._setStatus(Status.CHARGING);
-							}
+                                if (evcs.getChargeStateHandler().isChargingDetected()) {
+                                    evcs._setStatus(Status.CHARGING);
+                                } else {
+                                    evcs._setStatus(Status.NOT_READY_FOR_CHARGING);
+                                }
+                             }
 
 							// Has to provide a not null energy value
 							var currEnergy = evcs.getActiveConsumptionEnergy().asOptional();
@@ -292,16 +296,21 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 			evcsStatus = Status.NOT_READY_FOR_CHARGING;
 		}
 		case Charging -> {
-			evcsStatus = Status.CHARGING;
+			if (evcs.getChargeStateHandler().isChargingDetected()) {
+				evcsStatus = Status.CHARGING;
 
-			// Reset the end charge session stamp
-			evcs.getSessionEnd().resetChargeSessionStampIfPresent();
+				// Reset the end charge session stamp
+				evcs.getSessionEnd().resetChargeSessionStampIfPresent();
 
-			// Set the start charge session stamp
-			evcs.getSessionStart().setChargeSessionStampIfNotPresent(//
-					Instant.now(this.parent.componentManager.getClock()), //
-					evcs.getActiveProductionEnergy().orElse(0L));
+				// Set the start charge session stamp
+				evcs.getSessionStart().setChargeSessionStampIfNotPresent(
+						Instant.now(this.parent.componentManager.getClock()),
+						evcs.getActiveProductionEnergy().orElse(0L));
+			} else {
+				evcsStatus = Status.NOT_READY_FOR_CHARGING;
+			}
 		}
+
 		case Faulted -> {
 			evcsStatus = Status.ERROR;
 		}

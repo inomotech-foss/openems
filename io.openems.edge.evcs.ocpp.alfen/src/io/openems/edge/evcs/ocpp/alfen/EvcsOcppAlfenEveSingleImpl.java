@@ -1,11 +1,12 @@
 package io.openems.edge.evcs.ocpp.alfen;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -30,6 +31,7 @@ import eu.chargetime.ocpp.model.core.ChargingRateUnitType;
 import eu.chargetime.ocpp.model.core.ChargingSchedule;
 import eu.chargetime.ocpp.model.core.ChargingSchedulePeriod;
 import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
+import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
 import io.openems.edge.evcs.api.ChargingType;
@@ -39,6 +41,7 @@ import io.openems.edge.evcs.api.ManagedEvcs;
 import io.openems.edge.evcs.api.MeasuringEvcs;
 import io.openems.edge.evcs.api.PhaseRotation;
 import io.openems.edge.evcs.api.Phases;
+import io.openems.edge.evcs.api.SocEvcs;
 import io.openems.edge.evcs.ocpp.common.AbstractManagedOcppEvcsComponent;
 import io.openems.edge.evcs.ocpp.common.OcppInformations;
 import io.openems.edge.evcs.ocpp.common.OcppProfileType;
@@ -56,62 +59,70 @@ import io.openems.edge.timedata.api.Timedata;
                EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE })
 public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
         implements EvcsOcppAlfenEveSingle, Evcs, MeasuringEvcs, ManagedEvcs,
-                   ElectricityMeter, OpenemsComponent, EventHandler {
+                   ElectricityMeter, OpenemsComponent, EventHandler, SocEvcs {
 
     /* ------------------------------------------------------------------ */
     /* Konstanten                                                         */
     /* ------------------------------------------------------------------ */
     private static final int  U_NOMINAL_V      = 230;
     private static final int  FALLBACK_LIMIT_W = 32 * U_NOMINAL_V * 3; // 22 kW
-    private static final OcppProfileType[] PROFILES = { OcppProfileType.CORE };
+    private static final OcppProfileType[] PROFILE_TYPES = { //
+			OcppProfileType.CORE //
+	};                                   
+	private static final HashSet<OcppInformations> MEASUREMENTS = new HashSet<>(//
+			Arrays.asList(//
+					OcppInformations.values()) //
+	);
 
-    /* Kanäle ohne Duplikate                                             */
-    private static final io.openems.edge.common.channel.ChannelId[] CHANNELS;
-    static {
-        Set<io.openems.edge.common.channel.ChannelId> set = new LinkedHashSet<>();
-        Collections.addAll(set, OpenemsComponent.ChannelId.values());
-        Collections.addAll(set, Evcs.ChannelId.values());
-        Collections.addAll(set, ManagedEvcs.ChannelId.values());
-        Collections.addAll(set, MeasuringEvcs.ChannelId.values());
-        set.add(ElectricityMeter.ChannelId.ACTIVE_POWER);
-        set.add(ElectricityMeter.ChannelId.ACTIVE_CONSUMPTION_ENERGY);  
-        CHANNELS = set.toArray(new io.openems.edge.common.channel.ChannelId[0]);
-    }
+	private Config config;
 
-    private static final Set<OcppInformations> MEASUREMENTS =
-            new HashSet<>(Arrays.asList(OcppInformations.values()));
+	@Reference(policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.OPTIONAL)
+	private volatile Timedata timedata = null;
 
-    /* ------------------------------------------------------------------ */
-    /* OSGi-Referenzen                                                    */
-    /* ------------------------------------------------------------------ */
-    private Config config;
+	@Reference
+	private EvcsPower evcsPower;
 
-    @Reference(policy = ReferencePolicy.DYNAMIC,
-               policyOption = ReferencePolicyOption.GREEDY,
-               cardinality = ReferenceCardinality.OPTIONAL)
-    private volatile Timedata timedata;
+	@Reference
+	private ComponentManager componentManager;
 
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL,
-               policyOption = ReferencePolicyOption.GREEDY)
-    private volatile EvcsPower evcsPower;
+	private static final io.openems.edge.common.channel.ChannelId[] CHANNELS;
+	static {
+	    Map<String, io.openems.edge.common.channel.ChannelId> uniq = new LinkedHashMap<>();
 
-    /* ------------------------------------------------------------------ */
-    /* Konstruktor & Lifecycle                                            */
-    /* ------------------------------------------------------------------ */
-    public EvcsOcppAlfenEveSingleImpl() {
-        super(PROFILES, CHANNELS);
-    }
+	    // Helfer-Methode
+	    Consumer<io.openems.edge.common.channel.ChannelId[]> add =
+	        arr -> {
+	            for (var c : arr) {
+	                String key = ((Enum<?>) c).name();   // "FREQUENCY", "VOLTAGE" …
+	                uniq.putIfAbsent(key, c);            // überschreibt nicht, falls Name schon da
+	            }
+	        };
+
+	    add.accept(OpenemsComponent.ChannelId.values());
+	    add.accept(ElectricityMeter.ChannelId.values());
+	    add.accept(Evcs.ChannelId.values());
+	    add.accept(ManagedEvcs.ChannelId.values());
+	    add.accept(MeasuringEvcs.ChannelId.values());
+	    add.accept(SocEvcs.ChannelId.values());
+	    add.accept(EvcsOcppAlfenEveSingle.ChannelId.values());
+
+	    CHANNELS = uniq.values().toArray(new io.openems.edge.common.channel.ChannelId[0]);
+	}
+
+	public EvcsOcppAlfenEveSingleImpl() {
+	    super(PROFILE_TYPES, CHANNELS);   // nur noch EIN Array → garantiert ohne Duplikate
+	}
 
     @Activate
     private void activate(ComponentContext ctx, Config cfg) {
         this.config = cfg;
         super.activate(ctx, cfg.id(), cfg.alias(), cfg.enabled());
 
-        _setChargingType(ChargingType.AC);
-        _setPhases(Phases.THREE_PHASE);
-        _setPowerPrecision(U_NOMINAL_V);
-        _setFixedMinimumHardwarePower(getConfiguredMinimumHardwarePower());
-        _setFixedMaximumHardwarePower(getConfiguredMaximumHardwarePower());
+        this._setChargingType(ChargingType.AC);
+        this._setPhases(Phases.THREE_PHASE);
+        this._setPowerPrecision(U_NOMINAL_V);
+        this._setFixedMinimumHardwarePower(this.getConfiguredMinimumHardwarePower());
+        this._setFixedMaximumHardwarePower(this.getConfiguredMaximumHardwarePower());
     }
 
     @Deactivate
@@ -133,7 +144,7 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
     @Override public int getMinimumTimeTillChargingLimitTaken() { return 30; }
 
     /* Meter-Infos */
-    @Override public MeterType     getMeterType()     { return MeterType.MANAGED_CONSUMPTION_METERED; }
+    @Override public MeterType     getMeterType()     { return MeterType.CONSUMPTION_METERED; }
     @Override public PhaseRotation getPhaseRotation() { return PhaseRotation.L1_L2_L3; }
 
     /* Services */
@@ -143,6 +154,7 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
     /* EVCS-spezifisch */
     @Override public boolean returnsSessionEnergy() { return false; }
     @Override public boolean getConfiguredDebugMode() { return false; }
+    
 
     /* ------------------------------------------------------------------ */
     /* OCPP-Standard-Requests                                             */
@@ -198,6 +210,8 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
             }
 
             @Override public Request setDisplayText(String text) { return null; }
+            
+            
         };
     }
 
@@ -218,4 +232,6 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
     }
 
     @Override public List<Request> getRequiredRequestsDuringConnection() { return List.of(); }
+    
+    
 }

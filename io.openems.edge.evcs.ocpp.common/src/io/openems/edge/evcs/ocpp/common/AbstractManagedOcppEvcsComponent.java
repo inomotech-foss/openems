@@ -316,6 +316,12 @@ public abstract class AbstractManagedOcppEvcsComponent extends AbstractManagedEv
 	 * Check the current state and resets the measured values.
 	 */
 	private void checkCurrentState() {
+		boolean chargingDetected = this.getChargeStateHandler().isChargingDetected();
+		if (chargingDetected && this.getStatus() != Status.CHARGING) {
+			this._setStatus(Status.CHARGING);
+		} else if (!chargingDetected && this.getStatus() == Status.CHARGING) {
+			this._setStatus(Status.NOT_READY_FOR_CHARGING);
+		}
 		var state = this.getStatus();
 		switch (state) {
 		case CHARGING, READY_FOR_CHARGING //
