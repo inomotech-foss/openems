@@ -4,10 +4,18 @@
 
 -resolve.effective: active
 
--runproperties:\
+-runpath: biz.aQute.remote.launcher
+ 
+-runremote: \
+pi; \
+    shell = -1; \
+    jdb = 5005; \
+    host = ech-dev
+    
+-runproperties: \
+	felix.cm.dir=/openems/config,\
+	openems.data.dir=/openems/data,\
 	org.osgi.service.http.port=8080,\
-	felix.cm.dir=c:/openems/config,\
-	openems.data.dir=c:/openems/data,\
 	org.apache.felix.eventadmin.Timeout=0,\
 	org.ops4j.pax.logging.DefaultServiceLog.level=INFO
 
@@ -466,4 +474,6 @@
 	org.owasp.encoder;version='[1.3.1,1.3.2)',\
 	reactive-streams;version='[1.0.4,1.0.5)',\
 	rrd4j;version='[3.9.0,3.9.1)',\
-	stax2-api;version='[4.2.2,4.2.3)'
+	stax2-api;version='[4.2.2,4.2.3)',\
+	javax.xml.soap-api;version='[1.4.0,1.4.1)'
+-resolve: manual

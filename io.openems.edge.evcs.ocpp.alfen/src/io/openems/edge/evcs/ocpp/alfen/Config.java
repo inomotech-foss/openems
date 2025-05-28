@@ -21,9 +21,8 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
     @AttributeDefinition(name = "OCPP ChargePoint ID", required = true)
     String ocppId() default "";
 
-    @AttributeDefinition(name = "Connector-ID", required = true,
-                         description = "Usually 1 for a single socket.")
-    int connectorId() default 1;
+    @AttributeDefinition(name = "OCPP connector identifier", description = "The connector id of the chargepoint (e.g. if there are two connectors, then the evcs has two id's 1 and 2).", required = true)
+	int connectorId() default 0;
 
     @AttributeDefinition(name = "Maximum Hardware Power [W]", required = true)
     int maxHwPower() default 22000;

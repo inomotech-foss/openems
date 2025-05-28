@@ -41,7 +41,7 @@ public interface Evcs extends ElectricityMeter, OpenemsComponent {
 	public static final Integer DEFAULT_MAXIMUM_HARDWARE_CURRENT = 32_000; // mA
 	public static final Integer DEFAULT_MINIMUM_HARDWARE_CURRENT = 6_000; // mA
 	public static final Integer DEFAULT_VOLTAGE = 230; // V
-	public static final int DEFAULT_POWER_RECISION = 230;
+	public static final int DEFAULT_POWER_PRECISION = 230;
 	public static final int MIN_EVCS_ACTIVITY_CURRENT = 450; // mA (~100W)
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {

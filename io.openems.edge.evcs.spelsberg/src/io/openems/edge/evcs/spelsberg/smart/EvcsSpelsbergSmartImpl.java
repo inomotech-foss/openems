@@ -277,7 +277,7 @@ public class EvcsSpelsbergSmartImpl extends AbstractOpenemsModbusComponent imple
 		this._setPhases(Phases.THREE_PHASE.getValue());
 		this._setFixedMinimumHardwarePower(this.currentToPower(config.minHwCurrent()));
 		this._setFixedMaximumHardwarePower(this.currentToPower(config.maxHwCurrent()));
-		this._setPowerPrecision(DEFAULT_POWER_RECISION); // 1A steps
+		this._setPowerPrecision(DEFAULT_POWER_PRECISION); // 1A steps
 	}
 
 	private Integer currentToPower(Integer current) {
