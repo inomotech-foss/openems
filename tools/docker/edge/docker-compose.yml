@@ -2,7 +2,7 @@ version: "3"
 
 services:
   openems-edge:
-    image: openems_edge:latest
+    image: openems-edge:latest
     container_name: openems_edge
     hostname: openems_edge
     restart: unless-stopped
