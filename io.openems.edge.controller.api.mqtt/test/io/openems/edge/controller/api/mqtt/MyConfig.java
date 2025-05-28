@@ -13,6 +13,7 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 		private boolean debugMode;
 		private String clientId;
 		private String topicPrefix;
+		private boolean retainMessages;
 		private String username;
 		private String password;
 		private String certPem;
@@ -74,6 +75,11 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 
 		public Builder setDebugMode(boolean debugMode) {
 			this.debugMode = debugMode;
+			return this;
+		}
+
+		public Builder setRetainMessages(boolean retainMessages) {
+			this.retainMessages = retainMessages;
 			return this;
 		}
 
@@ -146,5 +152,10 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	@Override
 	public String trustStorePem() {
 		return this.builder.trustStorePem;
+	}
+
+	@Override
+	public boolean retainMessages() {
+		return this.builder.retainMessages;
 	}
 }

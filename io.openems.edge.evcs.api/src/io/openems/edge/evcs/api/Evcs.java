@@ -41,7 +41,7 @@ public interface Evcs extends ElectricityMeter, OpenemsComponent {
 	public static final Integer DEFAULT_MAXIMUM_HARDWARE_CURRENT = 32_000; // mA
 	public static final Integer DEFAULT_MINIMUM_HARDWARE_CURRENT = 6_000; // mA
 	public static final Integer DEFAULT_VOLTAGE = 230; // V
-	public static final int DEFAULT_POWER_RECISION = 230;
+	public static final int DEFAULT_POWER_PRECISION = 230;
 	public static final int MIN_EVCS_ACTIVITY_CURRENT = 450; // mA (~100W)
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
@@ -59,6 +59,48 @@ public interface Evcs extends ElectricityMeter, OpenemsComponent {
 		 * </ul>
 		 */
 		STATUS(Doc.of(Status.values()) //
+				.persistencePriority(PersistencePriority.HIGH)), //
+
+		/**
+		 * Charge Power on L1.
+		 *
+		 * <ul>
+		 * <li>Interface: Evcs
+		 * <li>Readable
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		CHARGE_POWER_L1(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT).accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH)), //
+
+		/**
+		 * Charge Power on L2.
+		 *
+		 * <ul>
+		 * <li>Interface: Evcs
+		 * <li>Readable
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		CHARGE_POWER_L2(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT).accessMode(AccessMode.READ_ONLY) //
+				.persistencePriority(PersistencePriority.HIGH)), //
+
+		/**
+		 * Charge Power on L3.
+		 *
+		 * <ul>
+		 * <li>Interface: Evcs
+		 * <li>Readable
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		CHARGE_POWER_L3(Doc.of(OpenemsType.INTEGER) //
+				.unit(Unit.WATT).accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH)), //
 
 		/**

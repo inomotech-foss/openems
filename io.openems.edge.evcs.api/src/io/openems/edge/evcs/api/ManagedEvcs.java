@@ -14,6 +14,7 @@ import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.DoubleReadChannel;
 import io.openems.edge.common.channel.EnumReadChannel;
 import io.openems.edge.common.channel.IntegerDoc;
+import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.StringWriteChannel;
 import io.openems.edge.common.channel.value.Value;
@@ -183,7 +184,7 @@ public interface ManagedEvcs extends Evcs {
 		 * <li>Unit: W
 		 * </ul>
 		 */
-		POWER_PRECISION(Doc.of(OpenemsType.DOUBLE) //
+		POWER_PRECISION(Doc.of(OpenemsType.INTEGER) //
 				.unit(Unit.WATT) //
 				.accessMode(AccessMode.READ_ONLY) //
 				.persistencePriority(PersistencePriority.HIGH)), //
@@ -377,7 +378,7 @@ public interface ManagedEvcs extends Evcs {
 	 *
 	 * @return the Channel
 	 */
-	public default DoubleReadChannel getPowerPrecisionChannel() {
+	public default IntegerReadChannel getPowerPrecisionChannel() {
 		return this.channel(ChannelId.POWER_PRECISION);
 	}
 
@@ -387,7 +388,7 @@ public interface ManagedEvcs extends Evcs {
 	 *
 	 * @return the Channel {@link Value}
 	 */
-	public default Value<Double> getPowerPrecision() {
+	public default Value<Integer> getPowerPrecision() {
 		return this.getPowerPrecisionChannel().value();
 	}
 
@@ -397,7 +398,7 @@ public interface ManagedEvcs extends Evcs {
 	 *
 	 * @param value the next value
 	 */
-	public default void _setPowerPrecision(Double value) {
+	public default void _setPowerPrecision(Integer value) {
 		this.getPowerPrecisionChannel().setNextValue(value);
 	}
 
@@ -407,7 +408,7 @@ public interface ManagedEvcs extends Evcs {
 	 *
 	 * @param value the next value
 	 */
-	public default void _setPowerPrecision(double value) {
+	public default void _setPowerPrecision(int value) {
 		this.getPowerPrecisionChannel().setNextValue(value);
 	}
 

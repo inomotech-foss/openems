@@ -4,10 +4,18 @@
 
 -resolve.effective: active
 
--runproperties:\
+-runpath: biz.aQute.remote.launcher
+ 
+-runremote: \
+pi; \
+    shell = -1; \
+    jdb = 5005; \
+    host = ech-dev
+    
+-runproperties: \
+	felix.cm.dir=/openems/config,\
+	openems.data.dir=/openems/data,\
 	org.osgi.service.http.port=8080,\
-	felix.cm.dir=c:/openems/config,\
-	openems.data.dir=c:/openems/data,\
 	org.apache.felix.eventadmin.Timeout=0,\
 	org.ops4j.pax.logging.DefaultServiceLog.level=INFO
 
@@ -132,6 +140,7 @@
 	bnd.identity;id='io.openems.edge.evcs.keba.kecontact',\
 	bnd.identity;id='io.openems.edge.evcs.mennekes',\
 	bnd.identity;id='io.openems.edge.evcs.ocpp.abl',\
+	bnd.identity;id='io.openems.edge.evcs.ocpp.alfen',\
 	bnd.identity;id='io.openems.edge.evcs.ocpp.common',\
 	bnd.identity;id='io.openems.edge.evcs.ocpp.ies.keywatt.singleccs',\
 	bnd.identity;id='io.openems.edge.evcs.ocpp.server',\
@@ -139,6 +148,7 @@
 	bnd.identity;id='io.openems.edge.evcs.webasto.next',\
 	bnd.identity;id='io.openems.edge.evcs.webasto.unite',\
 	bnd.identity;id='io.openems.edge.evse.chargepoint.hardybarth',\
+	bnd.identity;id='io.openems.edge.evse.chargepoint.heidelberg',\
 	bnd.identity;id='io.openems.edge.evse.chargepoint.keba',\
 	bnd.identity;id='io.openems.edge.evse.electricvehicle.generic',\
 	bnd.identity;id='io.openems.edge.fenecon.dess',\
@@ -165,6 +175,7 @@
 	bnd.identity;id='io.openems.edge.meter.carlo.gavazzi',\
 	bnd.identity;id='io.openems.edge.meter.discovergy',\
 	bnd.identity;id='io.openems.edge.meter.eastron',\
+	bnd.identity;id='io.openems.edge.meter.entes',\
 	bnd.identity;id='io.openems.edge.meter.janitza',\
 	bnd.identity;id='io.openems.edge.meter.kdk',\
 	bnd.identity;id='io.openems.edge.meter.phoenixcontact',\
@@ -206,7 +217,7 @@
 	bnd.identity;id='io.openems.edge.timeofusetariff.rabotcharge',\
 	bnd.identity;id='io.openems.edge.timeofusetariff.swisspower',\
 	bnd.identity;id='io.openems.edge.timeofusetariff.tibber',\
-
+	bnd.identity;id='io.openems.edge.evcs.ocpp.alfen'
 -runbundles: \
 	Java-WebSocket;version='[1.5.4,1.5.5)',\
 	bcpkix;version='[1.80.0,1.80.1)',\
@@ -320,6 +331,7 @@
 	io.openems.edge.evcs.keba.kecontact;version=snapshot,\
 	io.openems.edge.evcs.mennekes;version=snapshot,\
 	io.openems.edge.evcs.ocpp.abl;version=snapshot,\
+	io.openems.edge.evcs.ocpp.alfen;version=snapshot,\
 	io.openems.edge.evcs.ocpp.common;version=snapshot,\
 	io.openems.edge.evcs.ocpp.ies.keywatt.singleccs;version=snapshot,\
 	io.openems.edge.evcs.ocpp.server;version=snapshot,\
@@ -328,6 +340,7 @@
 	io.openems.edge.evcs.webasto.unite;version=snapshot,\
 	io.openems.edge.evse.api;version=snapshot,\
 	io.openems.edge.evse.chargepoint.hardybarth;version=snapshot,\
+	io.openems.edge.evse.chargepoint.heidelberg;version=snapshot,\
 	io.openems.edge.evse.chargepoint.keba;version=snapshot,\
 	io.openems.edge.evse.electricvehicle.generic;version=snapshot,\
 	io.openems.edge.fenecon.dess;version=snapshot,\
@@ -356,6 +369,7 @@
 	io.openems.edge.meter.carlo.gavazzi;version=snapshot,\
 	io.openems.edge.meter.discovergy;version=snapshot,\
 	io.openems.edge.meter.eastron;version=snapshot,\
+	io.openems.edge.meter.entes;version=snapshot,\
 	io.openems.edge.meter.janitza;version=snapshot,\
 	io.openems.edge.meter.kdk;version=snapshot,\
 	io.openems.edge.meter.phoenixcontact;version=snapshot,\
@@ -430,24 +444,24 @@
 	org.apache.commons.commons-codec;version='[1.17.1,1.17.2)',\
 	org.apache.commons.commons-compress;version='[1.27.1,1.27.2)',\
 	org.apache.commons.commons-csv;version='[1.11.0,1.11.1)',\
-	org.apache.commons.commons-io;version='[2.16.1,2.16.2)',\
+	org.apache.commons.commons-io;version='[2.19.0,2.19.1)',\
 	org.apache.commons.math3;version='[3.6.1,3.6.2)',\
 	org.apache.felix.configadmin;version='[1.9.26,1.9.27)',\
 	org.apache.felix.eventadmin;version='[1.6.4,1.6.5)',\
 	org.apache.felix.fileinstall;version='[3.7.4,3.7.5)',\
-	org.apache.felix.http.jetty12;version='[1.0.28,1.0.29)',\
+	org.apache.felix.http.jetty12;version='[1.0.30,1.0.31)',\
 	org.apache.felix.http.servlet-api;version='[6.1.0,6.1.1)',\
 	org.apache.felix.inventory;version='[2.0.0,2.0.1)',\
 	org.apache.felix.metatype;version='[1.2.4,1.2.5)',\
 	org.apache.felix.scr;version='[2.2.12,2.2.13)',\
-	org.apache.felix.webconsole;version='[5.0.10,5.0.11)',\
+	org.apache.felix.webconsole;version='[5.0.12,5.0.13)',\
 	org.apache.felix.webconsole.plugins.ds;version='[2.3.0,2.3.1)',\
 	org.eclipse.jetty.client;version='[9.4.28,9.4.29)',\
 	org.eclipse.jetty.http;version='[9.4.28,9.4.29)',\
 	org.eclipse.jetty.io;version='[9.4.28,9.4.29)',\
 	org.eclipse.jetty.util;version='[9.4.28,9.4.29)',\
 	org.eclipse.paho.mqttv5.client;version='[1.2.5,1.2.6)',\
-	org.jetbrains.kotlin.osgi-bundle;version='[2.1.20,2.1.21)',\
+	org.jetbrains.kotlin.osgi-bundle;version='[2.1.21,2.1.22)',\
 	org.jsoup;version='[1.20.1,1.20.2)',\
 	org.jsr-305;version='[3.0.2,3.0.3)',\
 	org.openmuc.jmbus;version='[3.3.0,3.3.1)',\
@@ -460,4 +474,6 @@
 	org.owasp.encoder;version='[1.3.1,1.3.2)',\
 	reactive-streams;version='[1.0.4,1.0.5)',\
 	rrd4j;version='[3.9.0,3.9.1)',\
-	stax2-api;version='[4.2.2,4.2.3)'
+	stax2-api;version='[4.2.2,4.2.3)',\
+	javax.xml.soap-api;version='[1.4.0,1.4.1)'
+-resolve: manual

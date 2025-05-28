@@ -24,12 +24,12 @@ RUN patch src/index.html < /opt/index.patch && \
     node_modules/.bin/ng build -c "$VERSION";
 
 ### Build ui base
-FROM ghcr.io/linuxserver/baseimage-alpine:edge AS ui_base
+FROM --platform=$TARGETPLATFORM alpine:edge AS base_container
 
 RUN apk add --update --no-cache nginx openssl bash
 	
 ### Build ui container
-FROM ui_base
+FROM base_container
 
 COPY --from=build_ui /src/target/ /var/www/html/openems/
 COPY --from=build_ui /opt/assets/ /var/www/html/openems/assets/
