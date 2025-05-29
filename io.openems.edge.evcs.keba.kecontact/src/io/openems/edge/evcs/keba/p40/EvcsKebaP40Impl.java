@@ -122,7 +122,7 @@ public class EvcsKebaP40Impl extends AbstractOpenemsModbusComponent implements E
 				config.modbus_id());
 
 		this.config = config;
-		this._setPowerPrecision(0.23);
+		this._setPowerPrecision(Evcs.DEFAULT_POWER_PRECISION);
 		this._setChargingType(ChargingType.AC);
 		this._setFixedMinimumHardwarePower(this.getConfiguredMinimumHardwarePower());
 		this._setFixedMaximumHardwarePower(this.getConfiguredMaximumHardwarePower());
