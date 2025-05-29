@@ -3,14 +3,6 @@
 -runprovidedcapabilities: ${native_capability}
 
 -resolve.effective: active
-
--runpath: biz.aQute.remote.launcher
- 
--runremote: \
-pi; \
-    shell = -1; \
-    jdb = 5005; \
-    host = ech-dev
     
 -runproperties: \
 	felix.cm.dir=/openems/config,\
