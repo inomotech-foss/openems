@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.osgi.service.component.ComponentContext;
@@ -22,6 +23,9 @@ import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.propertytypes.EventTopics;
 import org.osgi.service.metatype.annotations.Designate;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
 import eu.chargetime.ocpp.model.core.ChargingProfile;
@@ -34,6 +38,8 @@ import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
+import io.openems.edge.common.jsonapi.ComponentJsonApi;
+import io.openems.edge.common.jsonapi.JsonApiBuilder;
 import io.openems.edge.evcs.api.ChargingType;
 import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.api.EvcsPower;
@@ -47,7 +53,11 @@ import io.openems.edge.evcs.ocpp.common.OcppInformations;
 import io.openems.edge.evcs.ocpp.common.OcppProfileType;
 import io.openems.edge.evcs.ocpp.common.OcppStandardRequests;
 import io.openems.edge.meter.api.ElectricityMeter;
+import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
+import io.openems.common.jsonrpc.base.JsonrpcRequest;
+import io.openems.common.jsonrpc.base.JsonrpcResponseSuccess;
 import io.openems.common.types.MeterType;
+import io.openems.common.utils.JsonUtils;
 import io.openems.edge.timedata.api.Timedata;
 
 @Designate(ocd = Config.class, factory = true)
@@ -59,7 +69,7 @@ import io.openems.edge.timedata.api.Timedata;
                EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE })
 public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
         implements EvcsOcppAlfenEveSingle, Evcs, MeasuringEvcs, ManagedEvcs,
-                   ElectricityMeter, OpenemsComponent, EventHandler, SocEvcs {
+                   ElectricityMeter, OpenemsComponent, EventHandler, SocEvcs, ComponentJsonApi {
 
     /* ------------------------------------------------------------------ */
     /* Konstanten                                                         */
@@ -232,6 +242,129 @@ public class EvcsOcppAlfenEveSingleImpl extends AbstractManagedOcppEvcsComponent
     }
 
     @Override public List<Request> getRequiredRequestsDuringConnection() { return List.of(); }
-    
-    
+
+    @Override
+    public void buildJsonApiRoutes(JsonApiBuilder builder) {
+        /* 1) applyChargeCurrentLimit */
+        builder.handleRequest(ApplyChargeCurrentLimitRequest.METHOD, call -> {
+            var req = ApplyChargeCurrentLimitRequest.from(call.getRequest());
+            var res = applyChargeCurrentLimit(req.connectorId, req.chargeCurrentLimit);
+            return new ApplyChargeCurrentLimitResponse(res);   // <-- Response zurückgeben
+        });
+
+        /* 2) applyChargePowerLimit  (nur 1 Parameter) */
+        builder.handleRequest(ApplyChargePowerLimitRequest.METHOD, call -> {
+            var req = ApplyChargePowerLimitRequest.from(call.getRequest());
+            boolean ok = applyChargePowerLimit(req.chargePowerLimit);    // <-- nur Leistung in W
+            return new ApplyChargePowerLimitResponse(ok);      // <-- Response zurückgeben
+        });
+    }
+
+    /* ############################################################### */
+    /*     ----------   JSON-RPC Helper-Klassen  ----------            */
+    /* ############################################################### */
+
+    /* ---------- applyChargeCurrentLimit (Request) ------------------ */
+    public static class ApplyChargeCurrentLimitRequest extends JsonrpcRequest {
+        public static final String METHOD = "applyChargeCurrentLimit";
+        private final int connectorId;
+        private final int chargeCurrentLimit;
+        public static ApplyChargeCurrentLimitRequest from(JsonrpcRequest r)
+                throws OpenemsNamedException {
+            int conn = JsonUtils.getAsInt(r.getParams(), "connector");
+            int val  = JsonUtils.getAsInt(r.getParams(), "value");
+            return new ApplyChargeCurrentLimitRequest(r, conn, val);
+        }
+        public ApplyChargeCurrentLimitRequest(int connectorId, int limitA) {
+            super(METHOD);
+            this.connectorId = connectorId;
+            this.chargeCurrentLimit = limitA;
+        }
+        private ApplyChargeCurrentLimitRequest(JsonrpcRequest t,
+                                               int connectorId, int limitA) {
+            super(t, METHOD);
+            this.connectorId = connectorId;
+            this.chargeCurrentLimit = limitA;
+        }
+        public int getConnectorId()        { return connectorId; }
+        public int getChargeCurrentLimit() { return chargeCurrentLimit; }
+        @Override public JsonObject getParams() {
+            return JsonUtils.buildJsonObject()
+                    .addProperty("connector", connectorId)
+                    .addProperty("value", chargeCurrentLimit)
+                    .build();
+        }
+    }
+
+    /* ---------- applyChargeCurrentLimit (Response) ----------------- */
+    public static class ApplyChargeCurrentLimitResponse
+            extends JsonrpcResponseSuccess {
+        private final JsonPrimitive txSuccess;
+        private final JsonPrimitive defaultSuccess;
+        public ApplyChargeCurrentLimitResponse(
+                AbstractManagedOcppEvcsComponent.CurrentLimitResult res) {
+            this(UUID.randomUUID(), res);
+        }
+        public ApplyChargeCurrentLimitResponse(UUID id,
+                AbstractManagedOcppEvcsComponent.CurrentLimitResult res) {
+            super(id);
+            this.txSuccess      = new JsonPrimitive(res.transactionLimitSuccess());
+            this.defaultSuccess = new JsonPrimitive(res.defaultLimitSuccess());
+        }
+        @Override public JsonObject getResult() {
+            return JsonUtils.buildJsonObject()
+                    .add("transactionAppliedSuccessfully", txSuccess)
+                    .add("defaultAppliedSuccessfully",      defaultSuccess)
+                    .build();
+        }
+    }
+
+    /* ---------- applyChargePowerLimit (Request) -------------------- */
+    public static class ApplyChargePowerLimitRequest extends JsonrpcRequest {
+        public static final String METHOD = "applyChargePowerLimit";
+        private final int connectorId;
+        private final int chargePowerLimit;
+        public static ApplyChargePowerLimitRequest from(JsonrpcRequest r)
+                throws OpenemsNamedException {
+            int conn = JsonUtils.getAsInt(r.getParams(), "connector");
+            int val  = JsonUtils.getAsInt(r.getParams(), "value");
+            return new ApplyChargePowerLimitRequest(r, conn, val);
+        }
+        public ApplyChargePowerLimitRequest(int connectorId, int limitW) {
+            super(METHOD);
+            this.connectorId = connectorId;
+            this.chargePowerLimit = limitW;
+        }
+        private ApplyChargePowerLimitRequest(JsonrpcRequest t,
+                                             int connectorId, int limitW) {
+            super(t, METHOD);
+            this.connectorId = connectorId;
+            this.chargePowerLimit = limitW;
+        }
+        public int getConnectorId()      { return connectorId; }
+        public int getChargePowerLimit() { return chargePowerLimit; }
+        @Override public JsonObject getParams() {
+            return JsonUtils.buildJsonObject()
+                    .addProperty("connector", connectorId)
+                    .addProperty("value", chargePowerLimit)
+                    .build();
+        }
+    }
+
+    /* ---------- applyChargePowerLimit (Response) ------------------- */
+    public static class ApplyChargePowerLimitResponse
+            extends JsonrpcResponseSuccess {
+        private final JsonPrimitive success;
+        public ApplyChargePowerLimitResponse(boolean ok) {
+            this(UUID.randomUUID(), ok);
+        }
+        public ApplyChargePowerLimitResponse(UUID id, boolean ok) {
+            super(id);
+            this.success = new JsonPrimitive(ok);
+        }
+        @Override public JsonObject getResult() {
+            return JsonUtils.buildJsonObject()
+                    .add("appliedSuccessfully", success).build();
+        }
+    }
 }
