@@ -4,18 +4,10 @@
 
 -resolve.effective: active
 
--runpath: biz.aQute.remote.launcher
- 
--runremote: \
-pi; \
-    shell = -1; \
-    jdb = 5005; \
-    host = ech-dev
-    
--runproperties: \
-	felix.cm.dir=/openems/config,\
-	openems.data.dir=/openems/data,\
+-runproperties:\
 	org.osgi.service.http.port=8080,\
+	felix.cm.dir=c:/openems/config,\
+	openems.data.dir=c:/openems/data,\
 	org.apache.felix.eventadmin.Timeout=0,\
 	org.ops4j.pax.logging.DefaultServiceLog.level=INFO
 
